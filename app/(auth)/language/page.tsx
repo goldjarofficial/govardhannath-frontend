@@ -1,44 +1,64 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import styles from "./language.module.css";
 
-export default function LanguagePage() {
+const languages = [
+  { flag: "🇬🇧", name: "English" },
+  { flag: "🇮🇳", name: "हिंदी" },
+  { flag: "🇮🇳", name: "ગુજરાતી" },
+];
+
+export default function Language() {
   const router = useRouter();
+  const [selected, setSelected] = useState("English");
 
   return (
-    <main className="min-h-screen bg-[#FFF9ED] px-5 py-8">
-      <div className="mx-auto w-full max-w-[480px]">
-        <h1 className="text-center text-2xl font-semibold text-[#6F0F12]">
-          Choose Language
-        </h1>
+    <main className={styles.screen}>
+      <section className={styles.content}>
+        <h1>Choose Language</h1>
 
-        <p className="mt-1 text-center text-sm text-[#7A655E]">
-          अपनी भाषा चुनें
-        </p>
+        <p className={styles.subtitle}>अपनी भाषा चुनें</p>
 
-        <div className="mt-8 space-y-3">
-          <button className="flex w-full items-center justify-between rounded-xl border border-[#E9DDC7] bg-white px-4 py-4">
-            <span>English</span>
-            <span>›</span>
-          </button>
+        <div className={styles.list}>
+          {languages.map((language) => (
+            <button
+              key={language.name}
+              className={`${styles.card} ${
+                selected === language.name ? styles.selected : ""
+              }`}
+              onClick={() => setSelected(language.name)}
+            >
+              <span className={styles.flag}>{language.flag}</span>
 
-          <button className="flex w-full items-center justify-between rounded-xl border border-[#E9DDC7] bg-white px-4 py-4">
-            <span>हिन्दी</span>
-            <span>›</span>
-          </button>
+              <span className={styles.name}>{language.name}</span>
 
-          <button className="flex w-full items-center justify-between rounded-xl border border-[#E9DDC7] bg-white px-4 py-4">
-            <span>ગુજરાતી</span>
-            <span>›</span>
-          </button>
+              <span className={styles.arrow}>›</span>
+            </button>
+          ))}
         </div>
+      </section>
 
+      <div className={styles.bottom}>
         <button
-          onClick={() => router.push('/login')}
-          className="mt-10 w-full rounded-xl bg-[#991B1E] px-5 py-3 font-semibold text-white"
+          className={styles.continue}
+          onClick={() => router.push("/login")}
         >
           Continue
         </button>
+      </div>
+
+      <div className={`${styles.flower} ${styles.flowerLeft}`}>
+        <i />
+        <i />
+        <i />
+      </div>
+
+      <div className={`${styles.flower} ${styles.flowerRight}`}>
+        <i />
+        <i />
+        <i />
       </div>
     </main>
   );

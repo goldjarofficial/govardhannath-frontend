@@ -1,0 +1,538 @@
+.screen {
+  min-height: 100vh;
+
+  background: #fff9ed;
+
+  color: #4b4039;
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+.header {
+  height: 72px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  position: relative;
+
+  background: #fffdf8;
+
+  border-bottom: 1px solid #eadbc5;
+}
+
+.header h1 {
+  margin: 0;
+
+  color: #641010;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 23px;
+}
+
+
+/* =========================
+   BACK
+========================= */
+
+.back {
+  position: absolute;
+
+  left: 15px;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  width: 38px;
+  height: 38px;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #a71919;
+
+  font-size: 35px;
+}
+
+
+/* =========================
+   CONTENT
+========================= */
+
+.content {
+  padding: 12px 17px 30px;
+}
+
+
+/* =========================
+   SEVA CARD
+========================= */
+
+.sevaCard {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 12px;
+
+  border: 1px solid #eadbc5;
+
+  border-radius: 12px;
+
+  background: #fffdf8;
+}
+
+.sevaIcon {
+  width: 58px;
+  height: 58px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 10px;
+
+  background: #f4e5c8;
+
+  font-size: 27px;
+}
+
+.sevaCard h2 {
+  margin: 0 0 4px;
+
+  color: #332820;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 18px;
+}
+
+.sevaCard p {
+  margin: 0;
+
+  color: #a71919;
+
+  font-size: 14px;
+
+  font-weight: 700;
+}
+
+
+/* =========================
+   SECTION TITLE
+========================= */
+
+.sectionTitle {
+  margin: 17px 0 9px;
+
+  color: #3d332c;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 16px;
+}
+
+
+/* =========================
+   TYPE TABS
+========================= */
+
+.typeTabs {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 9px;
+}
+
+.typeTabs button {
+  min-height: 67px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: flex-start;
+  justify-content: center;
+
+  gap: 5px;
+
+  padding: 10px 12px;
+
+  border: 1px solid #eadbc5;
+
+  border-radius: 10px;
+
+  background: #fffdf8;
+
+  text-align: left;
+
+  color: #443932;
+}
+
+.typeTabs strong {
+  font-size: 14px;
+}
+
+.typeTabs span {
+  color: #8a8077;
+
+  font-size: 10px;
+}
+
+.typeTabs button.typeActive {
+  border-color: #a71919;
+
+  background: #fff1e7;
+
+  color: #a71919;
+}
+
+.typeTabs button.typeActive span {
+  color: #776d65;
+}
+
+
+/* =========================
+   AUTO SEVA
+========================= */
+
+.autoBox {
+  margin-top: 12px;
+
+  padding: 13px;
+
+  border: 1px solid #e7cf9e;
+
+  border-radius: 11px;
+
+  background: #fff8e9;
+}
+
+.autoTitle {
+  display: flex;
+
+  gap: 10px;
+}
+
+.autoTitle>span {
+  font-size: 21px;
+}
+
+.autoTitle strong {
+  color: #641010;
+
+  font-size: 14px;
+}
+
+.autoTitle p {
+  margin: 3px 0 0;
+
+  color: #776d65;
+
+  font-size: 10px;
+
+  line-height: 1.35;
+}
+
+.autoBox h3 {
+  margin: 14px 0 8px;
+
+  color: #4b4039;
+
+  font-size: 12px;
+}
+
+
+/* =========================
+   FREQUENCY
+========================= */
+
+.frequency {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 7px;
+}
+
+.frequency button {
+  min-height: 52px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 3px;
+
+  border: 1px solid #eadbc5;
+
+  border-radius: 8px;
+
+  background: white;
+
+  color: #443932;
+}
+
+.frequency strong {
+  font-size: 12px;
+}
+
+.frequency span {
+  color: #8a8077;
+
+  font-size: 9px;
+}
+
+.frequency button.frequencyActive {
+  border-color: #a71919;
+
+  background: #a71919;
+
+  color: white;
+}
+
+.frequency button.frequencyActive span {
+  color: #f9e8df;
+}
+
+
+/* =========================
+   AMOUNT
+========================= */
+
+.amountGrid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 8px;
+}
+
+.amountGrid button {
+  height: 45px;
+
+  border: 1px solid #eadbc5;
+
+  border-radius: 9px;
+
+  background: #fffdf8;
+
+  color: #433932;
+
+  font-size: 14px;
+
+  font-weight: 700;
+}
+
+.amountGrid button.amountActive {
+  border-color: #a71919;
+
+  background: #fff1e7;
+
+  color: #a71919;
+}
+
+
+/* =========================
+   CUSTOM AMOUNT
+========================= */
+
+.customBox {
+  height: 45px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  margin-top: 8px;
+
+  padding: 0 12px;
+
+  border: 1px solid #d9c6ad;
+
+  border-radius: 9px;
+
+  background: white;
+}
+
+.customBox span {
+  color: #a71919;
+
+  font-size: 17px;
+
+  font-weight: 700;
+}
+
+.customBox input {
+  width: 100%;
+
+  border: 0;
+
+  outline: 0;
+
+  background: transparent;
+
+  color: #332820;
+
+  font-size: 15px;
+}
+
+
+/* =========================
+   PAYMENT METHODS
+========================= */
+
+.methods {
+  display: flex;
+  flex-direction: column;
+
+  gap: 7px;
+}
+
+.methods button {
+  min-height: 54px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 8px 11px;
+
+  border: 1px solid #eadbc5;
+
+  border-radius: 9px;
+
+  background: #fffdf8;
+
+  color: #443932;
+
+  text-align: left;
+}
+
+.methodIcon {
+  width: 27px;
+  height: 27px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+
+  background: #e4f4e8;
+
+  color: #14945f;
+
+  font-size: 12px;
+
+  font-weight: 700;
+}
+
+.methods div {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+.methods strong {
+  font-size: 12px;
+}
+
+.methods small {
+  color: #8a8077;
+
+  font-size: 9px;
+}
+
+
+/* =========================
+   PAY
+========================= */
+
+.pay {
+  width: 100%;
+  height: 49px;
+
+  margin-top: 15px;
+
+  border: 0;
+
+  border-radius: 10px;
+
+  background: #a71919;
+
+  color: white;
+
+  font-size: 15px;
+
+  font-weight: 700;
+}
+
+.pay:active {
+  transform: scale(0.985);
+}
+
+
+/* =========================
+   SECURE
+========================= */
+
+.secure {
+  margin-top: 12px;
+
+  text-align: center;
+
+  color: #9b762f;
+
+  font-size: 10px;
+
+  font-weight: 600;
+}
+
+.mandateNote {
+  margin: 10px 10px 0;
+
+  color: #8a8077;
+
+  text-align: center;
+
+  font-size: 9px;
+
+  line-height: 1.4;
+}
+
+
+/* =========================
+   DESKTOP
+========================= */
+
+@media (min-width: 600px) {
+  .screen {
+    width: 430px;
+
+    margin: auto;
+  }
+}

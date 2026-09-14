@@ -1,0 +1,367 @@
+.screen {
+  min-height: 100dvh;
+  padding: 8px 10px 82px;
+  background:
+    radial-gradient(circle at 50% -10%,
+      #fffef9 0,
+      #fffaf0 42%,
+      #f6ead5 100%);
+  color: #3d3028;
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+.header {
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.back {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #ead9bc;
+  border-radius: 50%;
+  background: rgba(255, 253, 247, .92);
+  color: #991919;
+  font-size: 27px;
+  line-height: 1;
+  box-shadow: 0 3px 12px rgba(91, 53, 19, .07);
+}
+
+.heading {
+  text-align: center;
+}
+
+.headerSpace {
+  width: 40px;
+}
+
+.ornament {
+  margin-bottom: 1px;
+  color: #c99435;
+  font-size: 12px;
+}
+
+.heading h1 {
+  margin: 0;
+  color: #941616;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -.2px;
+}
+
+.heading p {
+  margin: 5px 0 0;
+  color: #82766b;
+  font-size: 11px;
+}
+
+
+/* =========================
+   GOLD DIVIDER
+========================= */
+
+.divider {
+  height: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.divider span {
+  width: 72px;
+  height: 1px;
+  background: linear-gradient(to right,
+      transparent,
+      #d9b66b);
+}
+
+.divider span:last-child {
+  background: linear-gradient(to left,
+      transparent,
+      #d9b66b);
+}
+
+.divider b {
+  color: #c99435;
+  font-size: 10px;
+}
+
+
+/* =========================
+   LIST
+========================= */
+
+.list {
+  overflow: hidden;
+  border: 1px solid #e5cfaa;
+  border-radius: 17px;
+  background: rgba(255, 253, 248, .94);
+  box-shadow:
+    0 8px 25px rgba(79, 43, 14, .08),
+    inset 0 0 0 1px rgba(255, 255, 255, .7);
+}
+
+
+/* =========================
+   ROW
+========================= */
+
+.row {
+  min-height: 78px;
+  display: flex;
+  align-items: center;
+  padding: 8px 11px 8px 10px;
+  border-bottom: 1px solid #ecdfca;
+  transition: background .2s ease;
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.row.current {
+  background:
+    linear-gradient(90deg,
+      rgba(239, 250, 244, .9),
+      rgba(255, 253, 248, .9));
+}
+
+
+/* =========================
+   TEMPLE IMAGE
+========================= */
+
+.imageWrap {
+  width: 57px;
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.imageFrame {
+  width: 47px;
+  height: 47px;
+  overflow: hidden;
+  padding: 3px;
+  border: 1px solid #d3ad62;
+  border-radius: 13px;
+  background:
+    linear-gradient(145deg,
+      #fffdf7,
+      #f5e5c6);
+  box-shadow:
+    0 3px 9px rgba(109, 65, 16, .10),
+    inset 0 0 0 1px rgba(255, 255, 255, .8);
+}
+
+.imageFrame img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  border-radius: 9px;
+}
+
+/* =========================
+   DETAILS
+========================= */
+
+.details {
+  flex: 1;
+  min-width: 0;
+  padding-left: 7px;
+}
+
+.number {
+  display: block;
+  margin-bottom: 1px;
+  color: #c99435;
+  font-family: Georgia, serif;
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+
+.details h2 {
+  margin: 0;
+  color: #40342c;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.details small {
+  display: block;
+  margin-top: 3px;
+  color: #9a8c7d;
+  font-size: 8px;
+}
+
+
+/* =========================
+   TIME
+========================= */
+
+.timeBox {
+  width: 83px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.timeBox strong {
+  color: #463a32;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+
+/* =========================
+   STATUS
+========================= */
+
+.status {
+  padding: 4px 7px;
+  border-radius: 6px;
+  font-size: 8px;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: .1px;
+}
+
+.completed {
+  background: #eef7f1;
+  color: #4e9873;
+  border: 1px solid #d8ecdf;
+}
+
+.open {
+  background: linear-gradient(135deg,
+      #159b60,
+      #087d48);
+  color: white;
+  box-shadow: 0 3px 7px rgba(11, 125, 72, .20);
+}
+
+.upcoming {
+  background: #fff0d9;
+  color: #cf813d;
+  border: 1px solid #f5ddbc;
+}
+
+
+/* =========================
+   FOOTER ORNAMENT
+========================= */
+
+.footerOrnament {
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: #c99435;
+}
+
+.footerOrnament span {
+  width: 60px;
+  height: 1px;
+  background: linear-gradient(to right,
+      transparent,
+      #d8b66c);
+}
+
+.footerOrnament span:last-child {
+  background: linear-gradient(to left,
+      transparent,
+      #d8b66c);
+}
+
+.footerOrnament b {
+  font-family: Georgia, serif;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+
+/* =========================
+   BOTTOM NAV
+========================= */
+
+.nav {
+  position: fixed;
+  z-index: 50;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 64px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  border-top: 1px solid #e5d4b8;
+  background: rgba(255, 253, 248, .97);
+  box-shadow:
+    0 -5px 20px rgba(70, 40, 10, .10);
+  backdrop-filter: blur(12px);
+}
+
+.nav button {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 0;
+  background: transparent;
+  color: #84786d;
+  font-size: 9px;
+}
+
+.nav button span {
+  font-size: 19px;
+  line-height: 1;
+}
+
+.nav .active {
+  color: #a71919;
+  font-weight: 700;
+}
+
+.nav .active::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 27px;
+  height: 2px;
+  border-radius: 0 0 5px 5px;
+  background: #c99435;
+}
+
+
+/* =========================
+   DESKTOP
+========================= */
+
+@media (min-width: 600px) {
+  .screen {
+    width: 430px;
+    margin: auto;
+  }
+
+  .nav {
+    left: 50%;
+    right: auto;
+    width: 430px;
+    transform: translateX(-50%);
+  }
+}

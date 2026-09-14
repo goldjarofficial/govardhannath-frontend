@@ -1,0 +1,286 @@
+.screen {
+  min-height: 100vh;
+  background: #fff9ed;
+  color: #4b4039;
+  padding-bottom: 30px;
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+.header {
+  height: 74px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  position: relative;
+
+  background: #fffdf7;
+  border-bottom: 1px solid #f0e4d2;
+}
+
+.header h1 {
+  margin: 0;
+
+  color: #641010;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 24px;
+  font-weight: 700;
+}
+
+
+/* =========================
+   BACK
+========================= */
+
+.back {
+  position: absolute;
+
+  left: 17px;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  width: 38px;
+  height: 38px;
+
+  border: 0;
+  background: transparent;
+
+  color: #a71919;
+
+  font-size: 35px;
+  line-height: 1;
+}
+
+
+/* =========================
+   CATEGORIES
+========================= */
+
+.categories {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 14px 15px 10px;
+
+  overflow-x: auto;
+
+  scrollbar-width: none;
+}
+
+.categories::-webkit-scrollbar {
+  display: none;
+}
+
+.category {
+  flex: 0 0 auto;
+
+  height: 34px;
+
+  padding: 0 17px;
+
+  border: 1px solid #eadbc5;
+  border-radius: 10px;
+
+  background: #fffdf8;
+
+  color: #776d65;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+.category.selected {
+  border-color: #a71919;
+
+  background: #a71919;
+
+  color: white;
+}
+
+
+/* =========================
+   LIST
+========================= */
+
+.list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 9px;
+
+  padding: 5px 15px 0;
+}
+
+
+/* =========================
+   SEVA CARD
+========================= */
+
+.sevaCard {
+  width: 100%;
+  min-height: 82px;
+
+  display: flex;
+  align-items: center;
+
+  padding: 7px;
+
+  border: 1px solid #f0e3d0;
+  border-radius: 12px;
+
+  background: #fffdf8;
+
+  text-align: left;
+
+  box-shadow:
+    0 2px 7px rgba(100, 50, 20, 0.05);
+
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
+}
+
+.sevaCard:active {
+  transform: scale(0.985);
+  background: #fff7e8;
+}
+
+
+/* =========================
+   IMAGE
+========================= */
+
+.sevaImage {
+  width: 84px;
+  height: 68px;
+
+  flex: 0 0 84px;
+
+  display: block;
+
+  object-fit: cover;
+
+  border-radius: 9px;
+
+  background: #eadbc5;
+}
+
+
+/* =========================
+   INFO
+========================= */
+
+.sevaInfo {
+  flex: 1;
+
+  min-width: 0;
+
+  padding: 0 10px;
+}
+
+.sevaInfo h2 {
+  margin: 0 0 4px;
+
+  color: #332820;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 16px;
+  line-height: 1.2;
+
+  font-weight: 700;
+}
+
+.sevaInfo p {
+  margin: 0;
+
+  color: #8a8077;
+
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+
+/* =========================
+   ARROW
+========================= */
+
+.arrow {
+  width: 27px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #d3832d;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 30px;
+  font-weight: 300;
+}
+
+
+/* =========================
+   EMPTY
+========================= */
+
+.empty {
+  padding: 40px 20px;
+
+  text-align: center;
+
+  color: #8a8077;
+
+  font-size: 14px;
+}
+
+
+/* =========================
+   DECORATION
+========================= */
+
+.decoration {
+  margin-top: 22px;
+
+  text-align: center;
+
+  color: #c99435;
+
+  font-size: 17px;
+  letter-spacing: 8px;
+
+  opacity: 0.7;
+}
+
+
+/* =========================
+   DESKTOP
+========================= */
+
+@media (min-width: 600px) {
+  .screen {
+    width: 430px;
+    min-height: 100vh;
+
+    margin: auto;
+  }
+}

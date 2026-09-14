@@ -1,0 +1,195 @@
+.screen {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 10%,
+      #ffffff 0,
+      #fffaf0 38%,
+      #f8ecd6 100%);
+  text-align: center;
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  width: min(calc(100% - 48px), 390px);
+  height: 100%;
+  margin: auto;
+  padding-top: 6vh;
+}
+
+/* ROYAL ORNAMENT */
+
+.ornament {
+  width: 125px;
+  height: 125px;
+  display: block;
+  margin: 0 auto -4px;
+  object-fit: contain;
+  opacity: 0.58;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* TITLE */
+
+.content h1 {
+  margin: 0;
+  color: var(--maroon);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 29px;
+  line-height: 1.15;
+  font-weight: 700;
+}
+
+/* MESSAGE */
+
+.subtitle {
+  margin: 10px 0 24px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.subtitle strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* OTP INPUT */
+
+.otpInput {
+  width: 100%;
+  height: 58px;
+  border: 1px solid #d3a653;
+  border-radius: 14px;
+  outline: none;
+  background: #fffdf9;
+  color: var(--maroon);
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 8px;
+  box-shadow: 0 4px 14px #6b3d0d0d;
+}
+
+.otpInput::placeholder {
+  color: #c9c0b6;
+  letter-spacing: 5px;
+}
+
+.otpInput:focus {
+  border-color: var(--maroon);
+}
+
+/* VERIFY BUTTON */
+
+.verify {
+  width: 100%;
+  height: 51px;
+  margin-top: 15px;
+  border: 0;
+  border-radius: 13px;
+  background: #a71919;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: 0 6px 15px #71111120;
+}
+
+.verify:disabled {
+  background: #d28d88;
+  box-shadow: none;
+}
+
+.verify:not(:disabled):active {
+  transform: scale(0.985);
+}
+
+/* RESEND */
+
+.resend {
+  margin-top: 17px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--maroon);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* CHANGE MOBILE */
+
+.back {
+  display: block;
+  margin: 20px auto 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* SUBTLE GOLD CORNERS */
+
+.cornerLeft,
+.cornerRight {
+  position: absolute;
+  bottom: 20px;
+  width: 58px;
+  height: 58px;
+  border: 1px solid #d5b66d;
+  border-radius: 50%;
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+.cornerLeft {
+  left: -29px;
+}
+
+.cornerRight {
+  right: -29px;
+}
+
+/* SMALL PHONE */
+
+@media (max-height: 700px) {
+  .content {
+    padding-top: 3vh;
+  }
+
+  .ornament {
+    width: 105px;
+    height: 105px;
+    margin-bottom: -3px;
+  }
+
+  .content h1 {
+    font-size: 26px;
+  }
+
+  .subtitle {
+    margin: 8px 0 18px;
+  }
+
+  .otpInput {
+    height: 52px;
+  }
+
+  .verify {
+    height: 47px;
+  }
+
+  .resend {
+    margin-top: 13px;
+  }
+
+  .back {
+    margin-top: 15px;
+  }
+}

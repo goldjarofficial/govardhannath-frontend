@@ -1,100 +1,140 @@
 "use client";
 
-import Image from "next/image";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import styles from "./onboarding.module.css";
 
-import MobileContainer from "@/app/components/layout/MobileContainer";
-import Button from "@/app/components/ui/Button";
+const slides = [
+  {
+    image: "/images/thakurji-1.jpg",
+    title: (
+      <>
+        Experience
+        <br />
+        the Divine Grace
+      </>
+    ),
+    tags: "Live Darshan • Seva • Satsang",
+    text: (
+      <>
+        Stay connected with
+        <br />
+        Shri Govardhannathji
+      </>
+    ),
+  },
+  {
+    image: "/images/thakurji-2.jpg",
+    title: (
+      <>
+        Daily
+        <br />
+        Divine Darshan
+      </>
+    ),
+    tags: "Darshan • Aarti • Utsav",
+    text: (
+      <>
+        Feel the divine presence
+        <br />
+        wherever you are
+      </>
+    ),
+  },
+  {
+    image: "/images/thakurji-3.jpg",
+    title: (
+      <>
+        Be a Part
+        <br />
+        of Seva
+      </>
+    ),
+    tags: "Seva • Bhog • Vandan",
+    text: (
+      <>
+        Participate in sacred seva
+        <br />
+        with devotion
+      </>
+    ),
+  },
+  {
+    image: "/images/thakurji-4.jpg",
+    title: (
+      <>
+        Stay Connected
+        <br />
+        with Haveli
+      </>
+    ),
+    tags: "Satsang • Events • Updates",
+    text: (
+      <>
+        Everything about
+        <br />
+        Shri Govardhannath Haveli
+      </>
+    ),
+  },
+];
 
-export default function OnboardingPage() {
+export default function Onboarding() {
   const router = useRouter();
+  const [index, setIndex] = useState(0);
+
+  const slide = slides[index];
+
+  const next = () => {
+    if (index === slides.length - 1) {
+      router.push("/language");
+    } else {
+      setIndex(index + 1);
+    }
+  };
 
   return (
-    <MobileContainer>
-      <section
-        className="
-          flex
-          min-h-screen
-          flex-col
-          px-5
-          pb-8
-          pt-10
-        "
-      >
-        <div
-          className="
-            relative
-            h-[360px]
-            overflow-hidden
-            rounded-[28px]
-          "
+    <main className={styles.screen}>
+      <div className={styles.image}>
+        <img src={slide.image} alt="Shri Govardhannathji" />
+      </div>
+
+      <section className={styles.content}>
+        <h1>{slide.title}</h1>
+
+        <div className={styles.tags}>{slide.tags}</div>
+
+        <p>{slide.text}</p>
+
+        <div className={styles.dots}>
+          {slides.map((_, i) => (
+            <span key={i} className={i === index ? styles.active : ""} />
+          ))}
+        </div>
+
+        <button className={styles.next} onClick={next}>
+          {index === slides.length - 1 ? "Get Started" : "Next"}
+        </button>
+
+        <button
+          className={styles.skip}
+          onClick={() => router.push("/language")}
         >
-          <Image
-            src="/images/onboarding/temple.jpg"
-            alt="Shri Govardhannath Temple"
-            fill
-            priority
-            className="object-cover"
-          />
-        </div>
-
-        <div className="flex flex-1 flex-col text-center">
-          <h1
-            className="
-              temple-heading
-              mt-8
-              text-[29px]
-              font-bold
-              leading-tight
-              text-[#6F0F12]
-            "
-          >
-            Experience
-            <br />
-            the Divine Grace
-          </h1>
-
-          <p
-            className="
-              mx-auto
-              mt-4
-              max-w-[320px]
-              text-[14px]
-              leading-6
-              text-[#7A655E]
-            "
-          >
-            Stay connected with Shri Govardhannathji through Live Darshan, Seva,
-            Satsang and divine updates.
-          </p>
-
-          <div className="my-7 flex justify-center gap-2">
-            <span className="h-2 w-5 rounded-full bg-[#991B1E]" />
-            <span className="h-2 w-2 rounded-full bg-[#D7C7AC]" />
-            <span className="h-2 w-2 rounded-full bg-[#D7C7AC]" />
-            <span className="h-2 w-2 rounded-full bg-[#D7C7AC]" />
-          </div>
-
-          <div className="mt-auto">
-            <Button fullWidth onClick={() => router.push("/language")}>
-              Next
-            </Button>
-
-            <button
-              onClick={() => router.push("/language")}
-              className="
-                mt-4
-                w-full
-                py-3
-                text-sm
-                text-[#7A655E]
-              "
-            >
-              Skip
-            </button>
-          </div>
-        </div>
+          Skip
+        </button>
       </section>
-    </MobileContainer>
+
+      <div className={`${styles.flower} ${styles.left}`}>
+        <i />
+        <i />
+        <i />
+      </div>
+
+      <div className={`${styles.flower} ${styles.right}`}>
+        <i />
+        <i />
+        <i />
+      </div>
+    </main>
   );
 }

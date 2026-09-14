@@ -1,0 +1,352 @@
+/* =========================
+   OVERLAY
+========================= */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+
+  background: rgba(35, 19, 14, .48);
+
+  animation: fadeIn .2s ease;
+}
+
+
+/* =========================
+   DRAWER
+========================= */
+
+.drawer {
+  width: min(84vw, 350px);
+  height: 100dvh;
+
+  overflow-y: auto;
+
+  background:
+    linear-gradient(180deg,
+      #fffdf8 0%,
+      #fffaf0 100%);
+
+  box-shadow:
+    10px 0 35px rgba(46, 25, 12, .22);
+
+  animation: slideIn .28s cubic-bezier(.22, .8, .25, 1);
+}
+
+
+/* =========================
+   PROFILE HEADER
+========================= */
+
+.profileHeader {
+  position: relative;
+
+  min-height: 116px;
+
+  display: flex;
+  align-items: center;
+
+  padding: 22px 18px;
+
+  gap: 13px;
+
+  color: white;
+
+  background:
+    linear-gradient(135deg,
+      #795033,
+      #a4774b 55%,
+      #8d6039);
+
+  border-bottom:
+    1px solid rgba(255, 255, 255, .2);
+}
+
+
+/* GOLD DECORATIVE GLOW */
+
+.profileHeader::after {
+  content: "";
+
+  position: absolute;
+
+  right: -35px;
+  bottom: -35px;
+
+  width: 110px;
+  height: 110px;
+
+  border: 1px solid rgba(232, 198, 127, .35);
+  border-radius: 50%;
+}
+
+
+/* =========================
+   PROFILE PHOTO
+========================= */
+
+.profilePhoto {
+  width: 62px;
+  height: 62px;
+
+  display: grid;
+  place-items: center;
+
+  flex-shrink: 0;
+
+  border:
+    2px solid #f3d99d;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(circle,
+      #fffdf7,
+      #ead8bb);
+
+  font-size: 30px;
+
+  box-shadow:
+    0 4px 12px rgba(44, 25, 10, .2);
+}
+
+
+/* =========================
+   PROFILE INFO
+========================= */
+
+.profileInfo {
+  min-width: 0;
+}
+
+.profileInfo h2 {
+  margin: 0;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 17px;
+
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+.profileInfo p {
+  margin: 5px 0 0;
+
+  color: rgba(255, 255, 255, .78);
+
+  font-size: 11px;
+}
+
+
+/* =========================
+   CLOSE
+========================= */
+
+.close {
+  position: absolute;
+
+  top: 13px;
+  right: 12px;
+
+  width: 30px;
+  height: 30px;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, .14);
+
+  color: white;
+
+  font-size: 22px;
+  line-height: 1;
+}
+
+
+/* =========================
+   MENU
+========================= */
+
+.menu {
+  padding: 9px 8px 18px;
+}
+
+
+/* =========================
+   MENU BUTTON
+========================= */
+
+.menu button {
+  position: relative;
+
+  width: 100%;
+  height: 46px;
+
+  display: flex;
+  align-items: center;
+
+  padding: 0 10px;
+
+  border: 0;
+  border-radius: 10px;
+
+  background: transparent;
+
+  color: #4c4037;
+
+  text-align: left;
+
+  transition:
+    background .15s ease,
+    transform .15s ease;
+}
+
+.menu button:hover {
+  background: #f8eee0;
+}
+
+.menu button:active {
+  transform: scale(.985);
+}
+
+
+/* =========================
+   ICON
+========================= */
+
+.icon {
+  width: 35px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #c65a22;
+
+  font-size: 19px;
+
+  line-height: 1;
+}
+
+
+/* =========================
+   TITLE
+========================= */
+
+.title {
+  flex: 1;
+
+  padding-left: 7px;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 13px;
+
+  font-weight: 600;
+}
+
+
+/* =========================
+   ARROW
+========================= */
+
+.arrow {
+  color: #c6aa82;
+
+  font-size: 18px;
+}
+
+
+/* =========================
+   ACTIVE
+========================= */
+
+.active {
+  background:
+    linear-gradient(90deg,
+      #fff0dc,
+      #fff9ef) !important;
+
+  color: #9b1919 !important;
+}
+
+.active .icon {
+  color: #a71919;
+}
+
+
+/* =========================
+   SEPARATOR
+========================= */
+
+.separator {
+  height: 1px;
+
+  margin: 7px 13px;
+
+  background:
+    linear-gradient(to right,
+      transparent,
+      #e6d5b8,
+      transparent);
+}
+
+
+/* =========================
+   LOGOUT
+========================= */
+
+.logout {
+  color: #a71919 !important;
+}
+
+.logout .icon {
+  color: #a71919;
+}
+
+
+/* =========================
+   ANIMATIONS
+========================= */
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+
+/* =========================
+   DESKTOP
+========================= */
+
+@media (min-width: 600px) {
+
+  .drawer {
+    width: 350px;
+  }
+
+}
