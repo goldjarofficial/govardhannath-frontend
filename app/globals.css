@@ -6,6 +6,8 @@
   --text: #4b4039;
   --muted: #776d65;
   --border: #eadbc5;
+
+  --desktop-sidebar: 92px;
 }
 
 * {
@@ -19,14 +21,25 @@ body {
   min-height: 100%;
 }
 
+html {
+  background: var(--cream);
+}
+
 body {
+  min-height: 100vh;
+
   background: var(--cream);
   color: var(--text);
+
   font-family: Arial, sans-serif;
+
+  overflow-x: hidden;
 }
 
 button,
-input {
+input,
+textarea,
+select {
   font: inherit;
 }
 
@@ -45,8 +58,45 @@ a {
 
 img {
   max-width: 100%;
+  height: auto;
 }
 
 .serif {
   font-family: Georgia, "Times New Roman", serif;
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 599px) {
+  body {
+    width: 100%;
+  }
+}
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (min-width: 600px) and (max-width: 1023px) {
+  body {
+    width: 100%;
+  }
+}
+
+/* =========================================
+   DESKTOP WEBSITE
+========================================= */
+
+@media (min-width: 1024px) {
+  html,
+  body {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  body {
+    background: #f7efe3;
+  }
 }

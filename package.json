@@ -12,6 +12,7 @@
     "@capacitor/android": "^8.5.2",
     "@capacitor/cli": "^8.5.2",
     "@capacitor/core": "^8.5.2",
+    "@google-cloud/translate": "^10.1.0",
     "@hookform/resolvers": "^5.9.1",
     "@tanstack/react-query": "^5.102.8",
     "axios": "^1.20.0",

@@ -1,18 +1,29 @@
+import type {
+  Metadata,
+} from "next";
+
 import "./globals.css";
 
-export const metadata = {
-  title: "Shri Govardhannath Haveli",
-  description: "Seva • Satsang • Sanskar",
+import Providers from "./providers";
+
+export const metadata: Metadata = {
+  title: "Shri Govardhannath",
+  description:
+    "Shri Govardhannath Haveli",
 };
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Providers>
+          {children}
+        </Providers>
+      </body>
     </html>
   );
 }

@@ -4,65 +4,62 @@ import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import styles from "./seva-detail.module.css";
 
-const sevaData: Record<
-  string,
-  {
-    title: string;
-    subtitle: string;
-    image: string;
-    description: string;
-    progress: number;
-    progressText: string;
-  }
-> = {
+import { useLanguage } from "../../../lib/LanguageProvider";
+import type { TranslationKey } from "../../../lib/i18n";
+
+type SevaDetailData = {
+  titleKey: TranslationKey;
+  subtitleKey: TranslationKey;
+  image: string;
+  descriptionKey: TranslationKey;
+  progress: number;
+  progressTextKey: TranslationKey;
+};
+
+const sevaData: Record<string, SevaDetailData> = {
   "go-seva": {
-    title: "Go Seva",
-    subtitle: "Care for Gau Mata",
+    titleKey: "goSeva",
+    subtitleKey: "careForGauMata",
     image: "/images/go-seva.jpg",
-    description:
-      "Support the service of Gau Mata at Govardhannath Haveli. Your contribution helps in food, healthcare and shelter for our cows.",
+    descriptionKey: "goSevaDescription",
     progress: 72,
-    progressText: "72 cows sponsored out of 100",
+    progressTextKey: "goSevaProgress",
   },
 
   "nitya-bhog": {
-    title: "Nitya Bhog Seva",
-    subtitle: "Daily Food Offering",
+    titleKey: "nityaBhogSeva",
+    subtitleKey: "dailyFoodOffering",
     image: "/images/nitya-bhog.jpg",
-    description:
-      "Support the daily bhog seva offered to Shri Govardhannathji. Your contribution helps provide sacred food offerings with devotion.",
+    descriptionKey: "nityaBhogDescription",
     progress: 68,
-    progressText: "68% seva sponsored",
+    progressTextKey: "nityaBhogProgress",
   },
 
   flower: {
-    title: "Flower Seva",
-    subtitle: "Temple Decoration",
+    titleKey: "flowerSeva",
+    subtitleKey: "templeDecoration",
     image: "/images/flower-seva.jpg",
-    description:
-      "Support the beautiful daily flower decoration of the Haveli. Your contribution helps create a divine and devotional atmosphere for Thakurji.",
+    descriptionKey: "flowerSevaDescription",
     progress: 54,
-    progressText: "54% seva sponsored",
+    progressTextKey: "flowerSevaProgress",
   },
 
   annakut: {
-    title: "Annakut Seva",
-    subtitle: "Special Utsav Seva",
+    titleKey: "annakutSeva",
+    subtitleKey: "specialUtsavSeva",
     image: "/images/annakut.jpg",
-    description:
-      "Be part of the sacred Annakut Utsav and support the special offerings prepared for Shri Govardhannathji with devotion.",
+    descriptionKey: "annakutDescription",
     progress: 82,
-    progressText: "82% seva sponsored",
+    progressTextKey: "annakutProgress",
   },
 
   "temple-maintenance": {
-    title: "Temple Maintenance",
-    subtitle: "Support Temple Services",
+    titleKey: "templeMaintenance",
+    subtitleKey: "supportTempleServices",
     image: "/images/temple-maintenance.jpg",
-    description:
-      "Support the maintenance of Govardhannath Haveli and help provide essential services for the temple and devotees.",
+    descriptionKey: "templeMaintenanceDescription",
     progress: 45,
-    progressText: "45% seva sponsored",
+    progressTextKey: "templeMaintenanceProgress",
   },
 };
 
@@ -71,29 +68,40 @@ const amounts = ["₹101", "₹501", "₹1,001", "₹5,001"];
 export default function SevaDetail() {
   const router = useRouter();
   const params = useParams();
+  const { t } = useLanguage();
 
-  const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
+  const rawId = Array.isArray(params.id)
+    ? params.id[0]
+    : params.id;
+
   const id = rawId ?? "go-seva";
 
-  const seva = sevaData[id] || sevaData["go-seva"];
-  const [selectedAmount, setSelectedAmount] = useState("₹501");
-  const [customAmount, setCustomAmount] = useState("");
+  const seva =
+    sevaData[id] || sevaData["go-seva"];
+
+  const [selectedAmount, setSelectedAmount] =
+    useState("₹501");
+
+  const [customAmount, setCustomAmount] =
+    useState("");
 
   const handleDonate = () => {
     const amount =
       selectedAmount === "Custom"
         ? customAmount
-        : selectedAmount.replace("₹", "").replace(",", "");
+        : selectedAmount
+            .replace("₹", "")
+            .replace(",", "");
 
     if (!amount) {
-      alert("Please select a donation amount");
+      alert(t("selectDonationAmount"));
       return;
     }
 
     router.push(
       `/donate?seva=${encodeURIComponent(
-        seva.title,
-      )}&amount=${encodeURIComponent(amount)}`,
+        id
+      )}&amount=${encodeURIComponent(amount)}`
     );
   };
 
@@ -102,11 +110,18 @@ export default function SevaDetail() {
       {/* HEADER */}
 
       <header className={styles.header}>
-        <button className={styles.back} onClick={() => router.back()}>
+        <button
+          type="button"
+          className={styles.back}
+          onClick={() => router.back()}
+          aria-label={t("back")}
+        >
           ‹
         </button>
 
-        <h1>Seva Detail</h1>
+        <h1>
+          {t("sevaDetail")}
+        </h1>
       </header>
 
       {/* CONTENT */}
@@ -114,23 +129,38 @@ export default function SevaDetail() {
       <section className={styles.content}>
         {/* IMAGE */}
 
-        <img src={seva.image} alt={seva.title} className={styles.hero} />
+        <img
+          src={seva.image}
+          alt={t(seva.titleKey)}
+          className={styles.hero}
+        />
 
         {/* TITLE */}
 
-        <h2>{seva.title}</h2>
+        <h2>
+          {t(seva.titleKey)}
+        </h2>
 
-        <div className={styles.subtitle}>{seva.subtitle}</div>
+        <div className={styles.subtitle}>
+          {t(seva.subtitleKey)}
+        </div>
 
         {/* DESCRIPTION */}
 
-        <p className={styles.description}>{seva.description}</p>
+        <p className={styles.description}>
+          {t(seva.descriptionKey)}
+        </p>
 
         {/* PROGRESS */}
 
         <div className={styles.progressHeader}>
-          <span>{seva.progressText}</span>
-          <b>{seva.progress}%</b>
+          <span>
+            {t(seva.progressTextKey)}
+          </span>
+
+          <b>
+            {seva.progress}%
+          </b>
         </div>
 
         <div className={styles.progressTrack}>
@@ -147,6 +177,7 @@ export default function SevaDetail() {
         <div className={styles.amounts}>
           {amounts.map((amount) => (
             <button
+              type="button"
               key={amount}
               className={
                 selectedAmount === amount
@@ -163,6 +194,7 @@ export default function SevaDetail() {
           ))}
 
           <button
+            type="button"
             className={
               selectedAmount === "Custom"
                 ? `${styles.amount} ${styles.selected}`
@@ -172,7 +204,7 @@ export default function SevaDetail() {
               setSelectedAmount("Custom");
             }}
           >
-            Custom
+            {t("custom")}
           </button>
         </div>
 
@@ -183,16 +215,22 @@ export default function SevaDetail() {
             className={styles.customInput}
             type="number"
             inputMode="numeric"
-            placeholder="Enter donation amount"
+            placeholder={t("enterDonationAmount")}
             value={customAmount}
-            onChange={(e) => setCustomAmount(e.target.value)}
+            onChange={(e) =>
+              setCustomAmount(e.target.value)
+            }
           />
         )}
 
         {/* DONATE */}
 
-        <button className={styles.donate} onClick={handleDonate}>
-          Donate Now
+        <button
+          type="button"
+          className={styles.donate}
+          onClick={handleDonate}
+        >
+          {t("donateNow")}
         </button>
       </section>
     </main>
