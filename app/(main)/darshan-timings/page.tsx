@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useLanguage } from "../../lib/LanguageProvider";
@@ -13,56 +14,134 @@ type DarshanStatus =
 type DarshanItem = {
   nameKey: TranslationKey;
   time: string;
-  status: DarshanStatus;
+  hour: number;
+  minute: number;
 };
 
 const darshans: DarshanItem[] = [
   {
     nameKey: "mangala",
     time: "05:30 AM",
-    status: "completed",
+    hour: 5,
+    minute: 30,
   },
   {
     nameKey: "shringar",
     time: "07:30 AM",
-    status: "completed",
+    hour: 7,
+    minute: 30,
   },
   {
     nameKey: "gwal",
     time: "09:00 AM",
-    status: "openNow",
+    hour: 9,
+    minute: 0,
   },
   {
     nameKey: "rajbhog",
     time: "12:15 PM",
-    status: "upcoming",
+    hour: 12,
+    minute: 15,
   },
   {
     nameKey: "utthapan",
     time: "04:00 PM",
-    status: "upcoming",
+    hour: 16,
+    minute: 0,
   },
   {
     nameKey: "bhog",
     time: "06:00 PM",
-    status: "upcoming",
+    hour: 18,
+    minute: 0,
   },
   {
     nameKey: "sandhyaAarti",
     time: "07:30 PM",
-    status: "upcoming",
+    hour: 19,
+    minute: 30,
   },
   {
     nameKey: "shayan",
     time: "09:00 PM",
-    status: "upcoming",
+    hour: 21,
+    minute: 0,
   },
 ];
 
 export default function DarshanTimings() {
   const router = useRouter();
 
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+
+  const [currentTime, setCurrentTime] =
+    useState<Date | null>(null);
+
+  /* =====================================================
+     REAL TIME
+  ===================================================== */
+
+  useEffect(() => {
+    setCurrentTime(new Date());
+
+    const interval = window.setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, []);
+
+  /* =====================================================
+     DARSHAN STATUS
+  ===================================================== */
+
+  const getDarshanStatus = (
+    index: number
+  ): DarshanStatus => {
+    if (!currentTime) {
+      return "upcoming";
+    }
+
+    const currentMinutes =
+      currentTime.getHours() * 60 +
+      currentTime.getMinutes();
+
+    const darshan = darshans[index];
+
+    const darshanMinutes =
+      darshan.hour * 60 +
+      darshan.minute;
+
+    const nextDarshan =
+      darshans[index + 1];
+
+    if (currentMinutes < darshanMinutes) {
+      return "upcoming";
+    }
+
+    if (!nextDarshan) {
+      return "openNow";
+    }
+
+    const nextDarshanMinutes =
+      nextDarshan.hour * 60 +
+      nextDarshan.minute;
+
+    if (
+      currentMinutes >= darshanMinutes &&
+      currentMinutes < nextDarshanMinutes
+    ) {
+      return "openNow";
+    }
+
+    return "completed";
+  };
+
+  /* =====================================================
+     STATUS TEXT
+  ===================================================== */
 
   const getStatusLabel = (
     status: DarshanStatus
@@ -92,145 +171,679 @@ export default function DarshanTimings() {
     return t("darshanUpcoming");
   };
 
-  return (
-    <main className="screen">
-      {/* HEADER */}
+  /* =====================================================
+     CURRENT DATE
+  ===================================================== */
 
-      <header className="header">
+  const getCurrentDate = () => {
+    if (!currentTime) {
+      return "";
+    }
+
+    const locale =
+      language === "hi"
+        ? "hi-IN"
+        : language === "gu"
+          ? "gu-IN"
+          : "en-IN";
+
+    return currentTime.toLocaleDateString(
+      locale,
+      {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      }
+    );
+  };
+
+  /* =====================================================
+     CURRENT TIME
+  ===================================================== */
+
+  const getCurrentTime = () => {
+    if (!currentTime) {
+      return "--:--:--";
+    }
+
+    return currentTime.toLocaleTimeString(
+      "en-IN",
+      {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+      }
+    );
+  };
+
+  return (
+    <main
+      className="
+        min-h-dvh
+        bg-[radial-gradient(circle_at_50%_-10%,#fffef9_0%,#fffaf0_42%,#f6ead5_100%)]
+        px-[10px]
+        pt-2
+        pb-[90px]
+        text-[#3d3028]
+
+        min-[430px]:px-4
+        min-[600px]:mx-auto
+        min-[600px]:max-w-[820px]
+        min-[600px]:px-6
+        min-[600px]:pt-[15px]
+
+        lg:ml-[92px]
+        lg:max-w-none
+        lg:px-10
+        lg:py-7
+        lg:pb-12
+        lg:bg-[radial-gradient(circle_at_top_right,rgba(201,148,53,0.12),transparent_30%),#fffaf0]
+
+        2xl:px-[50px]
+        2xl:py-8
+      "
+    >
+      {/* =================================================
+          MOBILE HEADER
+      ================================================= */}
+
+      <header
+        className="
+          flex
+          h-[88px]
+          items-center
+          justify-between
+
+          max-[359px]:h-[78px]
+          min-[430px]:h-[96px]
+          min-[600px]:h-[105px]
+
+          lg:hidden
+        "
+      >
         <button
           type="button"
-          className="back"
           onClick={() => router.back()}
           aria-label={t("back")}
+          className="
+            grid
+            h-10
+            w-10
+            shrink-0
+            place-items-center
+            rounded-full
+            border
+            border-[#ead9bc]
+            bg-[rgba(255,253,247,0.92)]
+            text-[27px]
+            leading-none
+            text-[#991919]
+            shadow-[0_3px_12px_rgba(91,53,19,0.07)]
+            transition
+
+            hover:bg-[#fff6e7]
+            active:scale-95
+
+            max-[359px]:h-9
+            max-[359px]:w-9
+            max-[359px]:text-2xl
+
+            min-[600px]:h-11
+            min-[600px]:w-11
+          "
         >
           ‹
         </button>
 
-        <div className="heading">
-          <div className="ornament">
+        <div className="text-center">
+          <div
+            className="
+              mb-[1px]
+              text-xs
+              text-[#c99435]
+            "
+          >
             ✦
           </div>
 
-          <h1>
-            {t(
-              "ashtakayamDarshan"
-            )}
+          <h1
+            className="
+              m-0
+              font-serif
+              text-[22px]
+              font-bold
+              tracking-[-0.2px]
+              text-[#941616]
+
+              max-[359px]:text-[19px]
+              min-[430px]:text-2xl
+              min-[600px]:text-[28px]
+            "
+          >
+            {t("ashtakayamDarshan")}
           </h1>
 
-          <p>
-            {t("todayDate")}
+          <p
+            className="
+              mt-[5px]
+              text-[11px]
+              text-[#82766b]
+
+              min-[430px]:text-xs
+              min-[600px]:text-[13px]
+            "
+          >
+            {getCurrentDate()}
           </p>
         </div>
 
-        <div className="headerSpace" />
+        <div
+          className="
+            w-10
+            max-[359px]:w-9
+            min-[600px]:w-11
+          "
+        />
       </header>
 
-      {/* GOLD DIVIDER */}
+      {/* =================================================
+          MOBILE DIVIDER
+      ================================================= */}
 
-      <div className="divider">
-        <span />
-        <b>✦</b>
-        <span />
+      <div
+        className="
+          mb-2
+          flex
+          h-[15px]
+          items-center
+          justify-center
+          gap-2
+
+          min-[600px]:mb-[14px]
+          lg:hidden
+        "
+      >
+        <span
+          className="
+            h-px
+            w-[72px]
+            bg-gradient-to-r
+            from-transparent
+            to-[#d9b66b]
+
+            min-[600px]:w-[105px]
+          "
+        />
+
+        <b className="text-[10px] text-[#c99435]">
+          ✦
+        </b>
+
+        <span
+          className="
+            h-px
+            w-[72px]
+            bg-gradient-to-l
+            from-transparent
+            to-[#d9b66b]
+
+            min-[600px]:w-[105px]
+          "
+        />
       </div>
 
-      {/* DESKTOP INTRO */}
+      {/* =================================================
+          DESKTOP INTRO
+      ================================================= */}
 
-      <section className="desktopIntro">
+      <section
+        className="
+          mb-[26px]
+          hidden
+          min-h-[135px]
+          items-center
+          justify-between
+          gap-6
+          rounded-[20px]
+          border
+          border-[#eadbc5]
+          bg-gradient-to-br
+          from-[#fffdf8]
+          to-[#fff5e5]
+          px-[30px]
+          py-[25px]
+          shadow-[0_8px_28px_rgba(82,48,18,0.07)]
+
+          lg:flex
+
+          2xl:min-h-[150px]
+          2xl:px-9
+          2xl:py-7
+        "
+      >
         <div>
-          <span className="eyebrow">
+          <span
+            className="
+              mb-[6px]
+              block
+              text-xs
+              font-bold
+              uppercase
+              tracking-[1.7px]
+              text-[#c99435]
+            "
+          >
             {t("darshan")}
           </span>
 
-          <h2>
-            {t(
-              "ashtakayamDarshan"
-            )}
+          <h2
+            className="
+              m-0
+              font-serif
+              text-[34px]
+              leading-[1.1]
+              font-bold
+              text-[#941616]
+
+              2xl:text-[38px]
+            "
+          >
+            {t("ashtakayamDarshan")}
           </h2>
 
-          <p>
-            {t("todayDate")}
+          <p
+            className="
+              mt-[9px]
+              text-sm
+              text-[#82766b]
+            "
+          >
+            {getCurrentDate()}
           </p>
+
+          {/* REAL CURRENT TIME */}
+
+          <div
+            className="
+              mt-3
+              inline-flex
+              items-center
+              gap-2
+              rounded-full
+              border
+              border-[#ead7b5]
+              bg-white/70
+              px-3
+              py-1.5
+              text-xs
+              font-semibold
+              text-[#6f5a46]
+            "
+          >
+            <span
+              className="
+                h-2
+                w-2
+                animate-pulse
+                rounded-full
+                bg-[#159b60]
+              "
+            />
+
+            {getCurrentTime()}
+          </div>
         </div>
 
-        <div className="introTemple">
+        <div
+          className="
+            grid
+            h-[82px]
+            w-[82px]
+            shrink-0
+            place-items-center
+            rounded-full
+            border
+            border-[#dec182]
+            bg-[#fffdf8]
+            text-[41px]
+            shadow-[0_8px_22px_rgba(96,57,18,0.08)]
+
+            2xl:h-[92px]
+            2xl:w-[92px]
+            2xl:text-[46px]
+          "
+        >
           🛕
         </div>
       </section>
 
-      {/* DARSHAN LIST */}
+      {/* =================================================
+          DARSHAN LIST
+      ================================================= */}
 
-      <section className="list">
+      <section
+        className="
+          overflow-hidden
+          rounded-[17px]
+          border
+          border-[#e5cfaa]
+          bg-[rgba(255,253,248,0.94)]
+          shadow-[0_8px_25px_rgba(79,43,14,0.08)]
+
+          min-[600px]:rounded-[20px]
+
+          lg:grid
+          lg:grid-cols-2
+          lg:gap-4
+          lg:overflow-visible
+          lg:rounded-none
+          lg:border-0
+          lg:bg-transparent
+          lg:shadow-none
+
+          2xl:gap-5
+        "
+      >
         {darshans.map(
           (darshan, index) => {
+            const status =
+              getDarshanStatus(index);
+
             const isCurrent =
-              darshan.status ===
-              "openNow";
+              status === "openNow";
 
             return (
               <div
-                className={`row ${
-                  isCurrent
-                    ? "current"
-                    : ""
-                }`}
-                key={
-                  darshan.nameKey
-                }
-              >
-                {/* TEMPLE */}
+                key={darshan.nameKey}
+                className={`
+                  flex
+                  min-h-[78px]
+                  items-center
+                  border-b
+                  border-[#ecdfca]
+                  px-[10px]
+                  py-2
+                  transition-all
+                  duration-200
 
-                <div className="imageWrap">
-                  <div className="templeIcon">
+                  last:border-b-0
+
+                  max-[359px]:min-h-[72px]
+                  max-[359px]:px-[7px]
+                  max-[359px]:py-[7px]
+
+                  min-[430px]:min-h-[86px]
+                  min-[430px]:px-[15px]
+                  min-[430px]:py-[10px]
+
+                  min-[600px]:min-h-[98px]
+                  min-[600px]:px-5
+                  min-[600px]:py-3
+
+                  lg:min-h-[118px]
+                  lg:rounded-2xl
+                  lg:border
+                  lg:border-[#eadbc5]
+                  lg:bg-[#fffdf8]
+                  lg:px-[18px]
+                  lg:py-4
+                  lg:shadow-[0_5px_18px_rgba(81,46,15,0.06)]
+
+                  lg:hover:-translate-y-[3px]
+                  lg:hover:border-[#d9bc83]
+                  lg:hover:shadow-[0_11px_28px_rgba(81,46,15,0.10)]
+
+                  2xl:min-h-[128px]
+                  2xl:px-[22px]
+                  2xl:py-[18px]
+
+                  ${
+                    isCurrent
+                      ? `
+                        bg-gradient-to-r
+                        from-[#effaf4]
+                        to-[#fffdf8]
+
+                        lg:border-[#b9dec9]
+                        lg:from-[#edf9f2]
+                        lg:to-[#fffdf8]
+                      `
+                      : ""
+                  }
+                `}
+              >
+                {/* TEMPLE ICON */}
+
+                <div
+                  className="
+                    flex
+                    w-[57px]
+                    shrink-0
+                    justify-center
+
+                    max-[359px]:w-[49px]
+
+                    min-[430px]:w-16
+                    min-[600px]:w-[72px]
+
+                    lg:w-[78px]
+                  "
+                >
+                  <div
+                    className="
+                      grid
+                      h-[47px]
+                      w-[47px]
+                      place-items-center
+                      rounded-[13px]
+                      border
+                      border-[#d3ad62]
+                      bg-gradient-to-br
+                      from-[#fffdf7]
+                      to-[#f5e5c6]
+                      text-[25px]
+                      shadow-[0_3px_9px_rgba(109,65,16,0.10)]
+
+                      max-[359px]:h-[42px]
+                      max-[359px]:w-[42px]
+                      max-[359px]:text-[22px]
+
+                      min-[430px]:h-[52px]
+                      min-[430px]:w-[52px]
+                      min-[430px]:text-[28px]
+
+                      min-[600px]:h-[58px]
+                      min-[600px]:w-[58px]
+                      min-[600px]:rounded-[15px]
+                      min-[600px]:text-[31px]
+
+                      lg:h-[62px]
+                      lg:w-[62px]
+                      lg:rounded-2xl
+                      lg:text-[33px]
+
+                      2xl:h-[68px]
+                      2xl:w-[68px]
+                      2xl:text-[36px]
+                    "
+                  >
                     🛕
                   </div>
                 </div>
 
                 {/* DETAILS */}
 
-                <div className="details">
-                  <span className="number">
+                <div
+                  className="
+                    min-w-0
+                    flex-1
+                    pl-[7px]
+
+                    max-[359px]:pl-[5px]
+
+                    min-[600px]:pl-[10px]
+                    lg:pl-[10px]
+                  "
+                >
+                  <span
+                    className="
+                      mb-[1px]
+                      block
+                      font-serif
+                      text-[8px]
+                      tracking-[1px]
+                      text-[#c99435]
+
+                      min-[600px]:text-[10px]
+                      lg:mb-1
+                    "
+                  >
                     {String(
                       index + 1
-                    ).padStart(
-                      2,
-                      "0"
-                    )}
+                    ).padStart(2, "0")}
                   </span>
 
-                  <h2>
-                    {t(
-                      darshan.nameKey
-                    )}
+                  <h2
+                    className="
+                      m-0
+                      font-serif
+                      text-[14px]
+                      font-bold
+                      text-[#40342c]
+
+                      max-[359px]:text-xs
+
+                      min-[430px]:text-[15px]
+                      min-[600px]:text-lg
+
+                      lg:text-xl
+                      2xl:text-[22px]
+                    "
+                  >
+                    {t(darshan.nameKey)}
                   </h2>
 
-                  <small>
+                  <small
+                    className="
+                      mt-[3px]
+                      block
+                      text-[8px]
+                      text-[#9a8c7d]
+
+                      min-[430px]:text-[9px]
+
+                      min-[600px]:mt-[5px]
+                      min-[600px]:text-[11px]
+
+                      lg:text-[11px]
+                      2xl:text-xs
+                    "
+                  >
                     {getStatusDescription(
-                      darshan.status
+                      status
                     )}
                   </small>
                 </div>
 
-                {/* TIME */}
+                {/* TIME + STATUS */}
 
-                <div className="timeBox">
-                  <strong>
+                <div
+                  className="
+                    flex
+                    w-[83px]
+                    flex-col
+                    items-start
+                    gap-[5px]
+
+                    max-[359px]:w-[72px]
+
+                    min-[430px]:w-[92px]
+
+                    min-[600px]:w-[115px]
+                    min-[600px]:gap-[7px]
+
+                    lg:w-[115px]
+                    lg:items-end
+                    lg:gap-2
+
+                    2xl:w-[130px]
+                  "
+                >
+                  <strong
+                    className="
+                      whitespace-nowrap
+                      text-[11px]
+                      font-bold
+                      text-[#463a32]
+
+                      max-[359px]:text-[10px]
+
+                      min-[430px]:text-xs
+                      min-[600px]:text-sm
+
+                      lg:text-sm
+                      2xl:text-[15px]
+                    "
+                  >
                     {darshan.time}
                   </strong>
 
                   <span
-                    className={`status ${
-                      darshan.status ===
-                      "completed"
-                        ? "completed"
-                        : darshan.status ===
-                            "openNow"
-                          ? "open"
-                          : "upcoming"
-                    }`}
+                    className={`
+                      whitespace-nowrap
+                      rounded-md
+                      px-[7px]
+                      py-1
+                      text-[8px]
+                      font-bold
+                      tracking-[0.1px]
+
+                      max-[359px]:px-[5px]
+                      max-[359px]:py-[3px]
+                      max-[359px]:text-[7px]
+
+                      min-[430px]:text-[9px]
+
+                      min-[600px]:px-[9px]
+                      min-[600px]:py-[5px]
+                      min-[600px]:text-[10px]
+
+                      lg:rounded-[7px]
+                      lg:px-[10px]
+                      lg:py-[6px]
+                      lg:text-[10px]
+
+                      2xl:text-[11px]
+
+                      ${
+                        status === "completed"
+                          ? `
+                            border
+                            border-[#d8ecdf]
+                            bg-[#eef7f1]
+                            text-[#4e9873]
+                          `
+                          : status ===
+                              "openNow"
+                            ? `
+                              bg-gradient-to-br
+                              from-[#159b60]
+                              to-[#087d48]
+                              text-white
+                              shadow-[0_3px_7px_rgba(11,125,72,0.20)]
+                            `
+                            : `
+                              border
+                              border-[#f5ddbc]
+                              bg-[#fff0d9]
+                              text-[#cf813d]
+                            `
+                      }
+                    `}
                   >
-                    {getStatusLabel(
-                      darshan.status
-                    )}
+                    {getStatusLabel(status)}
                   </span>
                 </div>
               </div>
@@ -239,1458 +852,58 @@ export default function DarshanTimings() {
         )}
       </section>
 
-      {/* FOOTER */}
+      {/* =================================================
+          FOOTER ORNAMENT
+      ================================================= */}
 
-      <div className="footerOrnament">
-        <span />
-        <b>ॐ</b>
-        <span />
+      <div
+        className="
+          flex
+          h-[35px]
+          items-center
+          justify-center
+          gap-[9px]
+          text-[#c99435]
+
+          lg:h-[75px]
+        "
+      >
+        <span
+          className="
+            h-px
+            w-[60px]
+            bg-gradient-to-r
+            from-transparent
+            to-[#d8b66c]
+
+            lg:w-[110px]
+          "
+        />
+
+        <b
+          className="
+            font-serif
+            text-[13px]
+            font-normal
+
+            lg:text-lg
+          "
+        >
+          ॐ
+        </b>
+
+        <span
+          className="
+            h-px
+            w-[60px]
+            bg-gradient-to-l
+            from-transparent
+            to-[#d8b66c]
+
+            lg:w-[110px]
+          "
+        />
       </div>
-
-      {/* NAVIGATION */}
-
-      <nav className="nav">
-        <button
-          type="button"
-          onClick={() =>
-            router.push(
-              "/dashboard"
-            )
-          }
-        >
-          <span>⌂</span>
-          {t("home")}
-        </button>
-
-        <button
-          type="button"
-          className="active"
-        >
-          <span>◉</span>
-          {t("darshan")}
-        </button>
-
-        <button
-          type="button"
-          onClick={() =>
-            router.push(
-              "/seva-donation"
-            )
-          }
-        >
-          <span>♨</span>
-          {t("seva")}
-        </button>
-
-        <button
-          type="button"
-          onClick={() =>
-            router.push("/reels")
-          }
-        >
-          <span>▣</span>
-          {t("reels")}
-        </button>
-
-        <button
-          type="button"
-          onClick={() =>
-            router.push(
-              "/dashboard"
-            )
-          }
-        >
-          <span>♙</span>
-          {t("profile")}
-        </button>
-      </nav>
-
-      <style jsx global>{`
-        /* ==========================================
-           PAGE
-        ========================================== */
-
-        .screen {
-          min-height:
-            100dvh;
-
-          padding:
-            8px 10px 82px;
-
-          background:
-            radial-gradient(
-              circle at 50% -10%,
-              #fffef9 0,
-              #fffaf0 42%,
-              #f6ead5 100%
-            );
-
-          color: #3d3028;
-        }
-
-        .desktopIntro {
-          display: none;
-        }
-
-        /* ==========================================
-           HEADER
-        ========================================== */
-
-        .header {
-          height: 88px;
-
-          display: flex;
-
-          align-items: center;
-
-          justify-content:
-            space-between;
-        }
-
-        .back {
-          width: 40px;
-          height: 40px;
-
-          display: grid;
-
-          place-items:
-            center;
-
-          flex-shrink: 0;
-
-          border:
-            1px solid #ead9bc;
-
-          border-radius:
-            50%;
-
-          background:
-            rgba(
-              255,
-              253,
-              247,
-              0.92
-            );
-
-          color: #991919;
-
-          font-size: 27px;
-
-          line-height: 1;
-
-          box-shadow:
-            0 3px 12px
-            rgba(
-              91,
-              53,
-              19,
-              0.07
-            );
-        }
-
-        .heading {
-          text-align: center;
-        }
-
-        .headerSpace {
-          width: 40px;
-        }
-
-        .ornament {
-          margin-bottom:
-            1px;
-
-          color: #c99435;
-
-          font-size: 12px;
-        }
-
-        .heading h1 {
-          margin: 0;
-
-          color: #941616;
-
-          font-family:
-            Georgia,
-            "Times New Roman",
-            serif;
-
-          font-size: 22px;
-
-          font-weight: 700;
-
-          letter-spacing:
-            -0.2px;
-        }
-
-        .heading p {
-          margin:
-            5px 0 0;
-
-          color: #82766b;
-
-          font-size: 11px;
-        }
-
-        /* ==========================================
-           DIVIDER
-        ========================================== */
-
-        .divider {
-          height: 15px;
-
-          display: flex;
-
-          align-items: center;
-
-          justify-content:
-            center;
-
-          gap: 8px;
-
-          margin-bottom:
-            8px;
-        }
-
-        .divider span {
-          width: 72px;
-
-          height: 1px;
-
-          background:
-            linear-gradient(
-              to right,
-              transparent,
-              #d9b66b
-            );
-        }
-
-        .divider span:last-child {
-          background:
-            linear-gradient(
-              to left,
-              transparent,
-              #d9b66b
-            );
-        }
-
-        .divider b {
-          color: #c99435;
-
-          font-size: 10px;
-        }
-
-        /* ==========================================
-           LIST
-        ========================================== */
-
-        .list {
-          overflow: hidden;
-
-          border:
-            1px solid #e5cfaa;
-
-          border-radius:
-            17px;
-
-          background:
-            rgba(
-              255,
-              253,
-              248,
-              0.94
-            );
-
-          box-shadow:
-            0 8px 25px
-              rgba(
-                79,
-                43,
-                14,
-                0.08
-              ),
-            inset 0 0 0 1px
-              rgba(
-                255,
-                255,
-                255,
-                0.7
-              );
-        }
-
-        /* ==========================================
-           ROW
-        ========================================== */
-
-        .row {
-          min-height: 78px;
-
-          display: flex;
-
-          align-items: center;
-
-          padding:
-            8px 11px
-            8px 10px;
-
-          border-bottom:
-            1px solid #ecdfca;
-
-          transition:
-            background 0.2s ease,
-            transform 0.2s ease,
-            box-shadow 0.2s ease;
-        }
-
-        .row:last-child {
-          border-bottom: 0;
-        }
-
-        .row.current {
-          background:
-            linear-gradient(
-              90deg,
-              rgba(
-                239,
-                250,
-                244,
-                0.9
-              ),
-              rgba(
-                255,
-                253,
-                248,
-                0.9
-              )
-            );
-        }
-
-        /* ==========================================
-           TEMPLE
-        ========================================== */
-
-        .imageWrap {
-          width: 57px;
-
-          display: flex;
-
-          justify-content:
-            center;
-
-          flex-shrink: 0;
-        }
-
-        .templeIcon {
-          width: 47px;
-          height: 47px;
-
-          display: grid;
-
-          place-items:
-            center;
-
-          border:
-            1px solid #d3ad62;
-
-          border-radius:
-            13px;
-
-          background:
-            linear-gradient(
-              145deg,
-              #fffdf7,
-              #f5e5c6
-            );
-
-          font-size: 25px;
-
-          box-shadow:
-            0 3px 9px
-              rgba(
-                109,
-                65,
-                16,
-                0.1
-              ),
-            inset 0 0 0 1px
-              rgba(
-                255,
-                255,
-                255,
-                0.8
-              );
-        }
-
-        /* ==========================================
-           DETAILS
-        ========================================== */
-
-        .details {
-          flex: 1;
-
-          min-width: 0;
-
-          padding-left:
-            7px;
-        }
-
-        .number {
-          display: block;
-
-          margin-bottom:
-            1px;
-
-          color: #c99435;
-
-          font-family:
-            Georgia,
-            serif;
-
-          font-size: 8px;
-
-          letter-spacing:
-            1px;
-        }
-
-        .details h2 {
-          margin: 0;
-
-          color: #40342c;
-
-          font-family:
-            Georgia,
-            "Times New Roman",
-            serif;
-
-          font-size: 14px;
-
-          font-weight: 700;
-        }
-
-        .details small {
-          display: block;
-
-          margin-top:
-            3px;
-
-          color: #9a8c7d;
-
-          font-size: 8px;
-        }
-
-        /* ==========================================
-           TIME
-        ========================================== */
-
-        .timeBox {
-          width: 83px;
-
-          display: flex;
-
-          flex-direction:
-            column;
-
-          align-items:
-            flex-start;
-
-          gap: 5px;
-        }
-
-        .timeBox strong {
-          color: #463a32;
-
-          font-size: 11px;
-
-          font-weight: 700;
-
-          white-space:
-            nowrap;
-        }
-
-        /* ==========================================
-           STATUS
-        ========================================== */
-
-        .status {
-          padding:
-            4px 7px;
-
-          border-radius:
-            6px;
-
-          font-size: 8px;
-
-          font-weight: 700;
-
-          white-space:
-            nowrap;
-
-          letter-spacing:
-            0.1px;
-        }
-
-        .completed {
-          border:
-            1px solid #d8ecdf;
-
-          background:
-            #eef7f1;
-
-          color: #4e9873;
-        }
-
-        .open {
-          background:
-            linear-gradient(
-              135deg,
-              #159b60,
-              #087d48
-            );
-
-          color: white;
-
-          box-shadow:
-            0 3px 7px
-            rgba(
-              11,
-              125,
-              72,
-              0.2
-            );
-        }
-
-        .upcoming {
-          border:
-            1px solid #f5ddbc;
-
-          background:
-            #fff0d9;
-
-          color: #cf813d;
-        }
-
-        /* ==========================================
-           FOOTER
-        ========================================== */
-
-        .footerOrnament {
-          height: 35px;
-
-          display: flex;
-
-          align-items: center;
-
-          justify-content:
-            center;
-
-          gap: 9px;
-
-          color: #c99435;
-        }
-
-        .footerOrnament span {
-          width: 60px;
-
-          height: 1px;
-
-          background:
-            linear-gradient(
-              to right,
-              transparent,
-              #d8b66c
-            );
-        }
-
-        .footerOrnament
-          span:last-child {
-          background:
-            linear-gradient(
-              to left,
-              transparent,
-              #d8b66c
-            );
-        }
-
-        .footerOrnament b {
-          font-family:
-            Georgia,
-            serif;
-
-          font-size: 13px;
-
-          font-weight: 400;
-        }
-
-        /* ==========================================
-           BOTTOM NAV
-        ========================================== */
-
-        .nav {
-          position: fixed;
-
-          z-index: 50;
-
-          left: 0;
-          right: 0;
-          bottom: 0;
-
-          height:
-            calc(
-              64px +
-              env(
-                safe-area-inset-bottom
-              )
-            );
-
-          display: grid;
-
-          grid-template-columns:
-            repeat(5, 1fr);
-
-          padding-bottom:
-            env(
-              safe-area-inset-bottom
-            );
-
-          border-top:
-            1px solid #e5d4b8;
-
-          background:
-            rgba(
-              255,
-              253,
-              248,
-              0.97
-            );
-
-          box-shadow:
-            0 -5px 20px
-            rgba(
-              70,
-              40,
-              10,
-              0.1
-            );
-
-          backdrop-filter:
-            blur(12px);
-        }
-
-        .nav button {
-          position: relative;
-
-          display: flex;
-
-          flex-direction:
-            column;
-
-          align-items: center;
-
-          justify-content:
-            center;
-
-          gap: 4px;
-
-          border: 0;
-
-          background:
-            transparent;
-
-          color: #84786d;
-
-          font-size: 9px;
-        }
-
-        .nav button span {
-          font-size: 19px;
-
-          line-height: 1;
-        }
-
-        .nav .active {
-          color: #a71919;
-
-          font-weight: 700;
-        }
-
-        .nav .active::before {
-          content: "";
-
-          position: absolute;
-
-          top: 0;
-
-          width: 27px;
-          height: 2px;
-
-          border-radius:
-            0 0 5px 5px;
-
-          background:
-            #c99435;
-        }
-
-        /* ==========================================
-           SMALL MOBILE
-        ========================================== */
-
-        @media (
-          max-width: 359px
-        ) {
-          .screen {
-            padding-left: 7px;
-            padding-right: 7px;
-          }
-
-          .header {
-            height: 78px;
-          }
-
-          .back {
-            width: 36px;
-            height: 36px;
-
-            font-size: 24px;
-          }
-
-          .headerSpace {
-            width: 36px;
-          }
-
-          .heading h1 {
-            font-size: 19px;
-          }
-
-          .row {
-            min-height: 72px;
-
-            padding:
-              7px 7px;
-          }
-
-          .imageWrap {
-            width: 49px;
-          }
-
-          .templeIcon {
-            width: 42px;
-            height: 42px;
-
-            font-size: 22px;
-          }
-
-          .details {
-            padding-left:
-              5px;
-          }
-
-          .details h2 {
-            font-size: 12px;
-          }
-
-          .timeBox {
-            width: 72px;
-          }
-
-          .timeBox strong {
-            font-size: 10px;
-          }
-
-          .status {
-            padding:
-              3px 5px;
-
-            font-size: 7px;
-          }
-        }
-
-        /* ==========================================
-           LARGE MOBILE
-        ========================================== */
-
-        @media (
-          min-width: 430px
-        ) and (
-          max-width: 599px
-        ) {
-          .screen {
-            padding:
-              10px 16px 84px;
-          }
-
-          .header {
-            height: 96px;
-          }
-
-          .heading h1 {
-            font-size: 24px;
-          }
-
-          .heading p {
-            font-size: 12px;
-          }
-
-          .row {
-            min-height: 86px;
-
-            padding:
-              10px 15px;
-          }
-
-          .imageWrap {
-            width: 64px;
-          }
-
-          .templeIcon {
-            width: 52px;
-            height: 52px;
-
-            font-size: 28px;
-          }
-
-          .details h2 {
-            font-size: 15px;
-          }
-
-          .details small {
-            font-size: 9px;
-          }
-
-          .timeBox {
-            width: 92px;
-          }
-
-          .timeBox strong {
-            font-size: 12px;
-          }
-
-          .status {
-            font-size: 9px;
-          }
-        }
-
-        /* ==========================================
-           TABLET
-        ========================================== */
-
-        @media (
-          min-width: 600px
-        ) and (
-          max-width: 1023px
-        ) {
-          .screen {
-            width: 100%;
-
-            max-width: 820px;
-
-            margin: 0 auto;
-
-            padding:
-              15px 24px 90px;
-          }
-
-          .header {
-            height: 105px;
-          }
-
-          .back {
-            width: 44px;
-            height: 44px;
-          }
-
-          .headerSpace {
-            width: 44px;
-          }
-
-          .heading h1 {
-            font-size: 28px;
-          }
-
-          .heading p {
-            font-size: 13px;
-          }
-
-          .divider {
-            margin-bottom:
-              14px;
-          }
-
-          .divider span {
-            width: 105px;
-          }
-
-          .list {
-            border-radius:
-              20px;
-          }
-
-          .row {
-            min-height: 98px;
-
-            padding:
-              12px 20px;
-          }
-
-          .imageWrap {
-            width: 72px;
-          }
-
-          .templeIcon {
-            width: 58px;
-            height: 58px;
-
-            border-radius:
-              15px;
-
-            font-size: 31px;
-          }
-
-          .details {
-            padding-left:
-              10px;
-          }
-
-          .number {
-            font-size: 10px;
-          }
-
-          .details h2 {
-            font-size: 18px;
-          }
-
-          .details small {
-            margin-top: 5px;
-
-            font-size: 11px;
-          }
-
-          .timeBox {
-            width: 115px;
-
-            gap: 7px;
-          }
-
-          .timeBox strong {
-            font-size: 14px;
-          }
-
-          .status {
-            padding:
-              5px 9px;
-
-            font-size: 10px;
-          }
-
-          .nav {
-            left: 50%;
-            right: auto;
-
-            width: min(
-              100%,
-              820px
-            );
-
-            transform:
-              translateX(-50%);
-          }
-        }
-
-        /* ==========================================
-           DESKTOP WEBSITE
-        ========================================== */
-
-        @media (
-          min-width: 1024px
-        ) {
-          body {
-            background:
-              #f7efe3;
-          }
-
-          .screen {
-            width: auto;
-
-            min-height: 100vh;
-
-            margin-left:
-              92px;
-
-            padding:
-              28px 40px 45px;
-
-            background:
-              radial-gradient(
-                circle at top right,
-                rgba(
-                  201,
-                  148,
-                  53,
-                  0.12
-                ),
-                transparent
-                  30%
-              ),
-              #fffaf0;
-          }
-
-          /* MOBILE HEADER HIDDEN */
-
-          .header {
-            display: none;
-          }
-
-          .divider {
-            display: none;
-          }
-
-          /* DESKTOP HEADER */
-
-          .desktopIntro {
-            min-height:
-              135px;
-
-            display: flex;
-
-            align-items:
-              center;
-
-            justify-content:
-              space-between;
-
-            gap: 25px;
-
-            margin-bottom:
-              26px;
-
-            padding:
-              25px 30px;
-
-            border:
-              1px solid #eadbc5;
-
-            border-radius:
-              20px;
-
-            background:
-              linear-gradient(
-                135deg,
-                #fffdf8,
-                #fff5e5
-              );
-
-            box-shadow:
-              0 8px 28px
-              rgba(
-                82,
-                48,
-                18,
-                0.07
-              );
-          }
-
-          .eyebrow {
-            display: block;
-
-            margin-bottom:
-              6px;
-
-            color: #c99435;
-
-            font-size: 12px;
-
-            font-weight: 700;
-
-            letter-spacing:
-              1.7px;
-
-            text-transform:
-              uppercase;
-          }
-
-          .desktopIntro h2 {
-            margin: 0;
-
-            color:
-              var(--maroon);
-
-            font-family:
-              Georgia,
-              "Times New Roman",
-              serif;
-
-            font-size: 34px;
-
-            line-height: 1.1;
-          }
-
-          .desktopIntro p {
-            margin:
-              9px 0 0;
-
-            color: #82766b;
-
-            font-size: 14px;
-          }
-
-          .introTemple {
-            width: 82px;
-            height: 82px;
-
-            display: grid;
-
-            place-items:
-              center;
-
-            flex-shrink: 0;
-
-            border:
-              1px solid #dec182;
-
-            border-radius:
-              50%;
-
-            background:
-              #fffdf8;
-
-            font-size: 41px;
-
-            box-shadow:
-              0 8px 22px
-              rgba(
-                96,
-                57,
-                18,
-                0.08
-              );
-          }
-
-          /* LIST */
-
-          .list {
-            display: grid;
-
-            grid-template-columns:
-              repeat(
-                2,
-                minmax(0, 1fr)
-              );
-
-            gap: 16px;
-
-            overflow: visible;
-
-            border: 0;
-
-            border-radius: 0;
-
-            background:
-              transparent;
-
-            box-shadow: none;
-          }
-
-          .row {
-            min-height:
-              118px;
-
-            padding:
-              16px 18px;
-
-            border:
-              1px solid #eadbc5;
-
-            border-radius:
-              16px;
-
-            background:
-              #fffdf8;
-
-            box-shadow:
-              0 5px 18px
-              rgba(
-                81,
-                46,
-                15,
-                0.06
-              );
-          }
-
-          .row:last-child {
-            border:
-              1px solid #eadbc5;
-          }
-
-          .row:hover {
-            transform:
-              translateY(-3px);
-
-            border-color:
-              #d9bc83;
-
-            box-shadow:
-              0 11px 28px
-              rgba(
-                81,
-                46,
-                15,
-                0.1
-              );
-          }
-
-          .row.current {
-            border-color:
-              #b9dec9;
-
-            background:
-              linear-gradient(
-                110deg,
-                #edf9f2,
-                #fffdf8
-              );
-          }
-
-          .imageWrap {
-            width: 78px;
-          }
-
-          .templeIcon {
-            width: 62px;
-            height: 62px;
-
-            border-radius:
-              16px;
-
-            font-size: 33px;
-          }
-
-          .details {
-            padding-left:
-              10px;
-          }
-
-          .number {
-            margin-bottom:
-              4px;
-
-            font-size: 10px;
-          }
-
-          .details h2 {
-            font-size: 20px;
-          }
-
-          .details small {
-            margin-top:
-              5px;
-
-            font-size: 11px;
-          }
-
-          .timeBox {
-            width: 115px;
-
-            align-items:
-              flex-end;
-
-            gap: 8px;
-          }
-
-          .timeBox strong {
-            font-size: 14px;
-          }
-
-          .status {
-            padding:
-              6px 10px;
-
-            border-radius:
-              7px;
-
-            font-size: 10px;
-          }
-
-          .footerOrnament {
-            height: 75px;
-          }
-
-          .footerOrnament span {
-            width: 110px;
-          }
-
-          .footerOrnament b {
-            font-size: 18px;
-          }
-
-          /* DESKTOP LEFT SIDEBAR */
-
-          .nav {
-            top: 0;
-            bottom: 0;
-
-            left: 0;
-            right: auto;
-
-            width: 92px;
-            height: 100vh;
-
-            display: flex;
-
-            flex-direction:
-              column;
-
-            padding:
-              90px 8px 18px;
-
-            border-top: 0;
-
-            border-right:
-              1px solid #eadbc5;
-
-            background:
-              #fffdf8;
-
-            box-shadow:
-              3px 0 18px
-              rgba(
-                80,
-                40,
-                10,
-                0.07
-              );
-
-            transform: none;
-          }
-
-          .nav button {
-            width: 100%;
-
-            min-height: 72px;
-
-            flex: none;
-
-            gap: 7px;
-
-            padding:
-              10px 4px;
-
-            border-radius:
-              10px;
-
-            font-size: 11px;
-          }
-
-          .nav button:hover {
-            background:
-              #fff2dd;
-
-            color:
-              #a71919;
-          }
-
-          .nav button span {
-            font-size: 25px;
-          }
-
-          .nav .active {
-            background:
-              #fbead3;
-
-            color:
-              #a71919;
-          }
-
-          .nav .active::before {
-            top: auto;
-            left: 0;
-
-            width: 3px;
-            height: 34px;
-
-            border-radius:
-              0 5px 5px 0;
-          }
-        }
-
-        /* ==========================================
-           LARGE DESKTOP
-        ========================================== */
-
-        @media (
-          min-width: 1400px
-        ) {
-          .screen {
-            margin-left:
-              92px;
-
-            padding:
-              32px 50px 50px;
-          }
-
-          .desktopIntro {
-            min-height:
-              150px;
-
-            padding:
-              28px 36px;
-          }
-
-          .desktopIntro h2 {
-            font-size: 38px;
-          }
-
-          .introTemple {
-            width: 92px;
-            height: 92px;
-
-            font-size: 46px;
-          }
-
-          .list {
-            grid-template-columns:
-              repeat(
-                2,
-                minmax(0, 1fr)
-              );
-
-            gap: 20px;
-          }
-
-          .row {
-            min-height:
-              128px;
-
-            padding:
-              18px 22px;
-          }
-
-          .templeIcon {
-            width: 68px;
-            height: 68px;
-
-            font-size: 36px;
-          }
-
-          .details h2 {
-            font-size: 22px;
-          }
-
-          .details small {
-            font-size: 12px;
-          }
-
-          .timeBox {
-            width: 130px;
-          }
-
-          .timeBox strong {
-            font-size: 15px;
-          }
-
-          .status {
-            font-size: 11px;
-          }
-        }
-      `}</style>
     </main>
   );
 }

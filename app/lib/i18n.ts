@@ -76,6 +76,7 @@ export const translations = {
     // DRAWER
     templeInformation: "Temple Information",
     myBookings: "My Bookings",
+    myOrders: "My Orders",
     myDonations: "My Donations",
     notifications: "Notifications",
     settings: "Settings",
@@ -271,6 +272,7 @@ export const translations = {
     templeInformation: "मंदिर की जानकारी",
     myBookings: "मेरी बुकिंग",
     myDonations: "मेरे दान",
+    myOrders: "मेरी ऑर्डर्स",
     notifications: "सूचनाएँ",
     settings: "सेटिंग्स",
     helpSupport: "सहायता एवं संपर्क",
@@ -464,6 +466,7 @@ export const translations = {
     // DRAWER
     templeInformation: "મંદિરની માહિતી",
     myBookings: "મારી બુકિંગ",
+    myOrders: "મારા ઓર્ડર",
     myDonations: "મારા દાન",
     notifications: "સૂચનાઓ",
     settings: "સેટિંગ્સ",

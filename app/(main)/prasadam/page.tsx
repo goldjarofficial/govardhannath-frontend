@@ -1,16 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useLanguage } from "../../lib/LanguageProvider";
 import type { TranslationKey } from "../../lib/i18n";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Category =
   | "all"
   | "sweets"
   | "mahaprasad"
   | "gifts";
+
+type ProductCategory = Exclude<Category, "all">;
 
 type CategoryItem = {
   id: Category;
@@ -22,8 +28,14 @@ type Product = {
   titleKey: TranslationKey;
   price: number;
   image: string;
-  category: Exclude<Category, "all">;
+  category: ProductCategory;
 };
+
+type Cart = Record<number, number>;
+
+/* =========================================================
+   DATA
+========================================================= */
 
 const categories: CategoryItem[] = [
   {
@@ -75,7 +87,11 @@ const products: Product[] = [
   },
 ];
 
-export default function Prasadam() {
+/* =========================================================
+   PAGE
+========================================================= */
+
+export default function PrasadamPage() {
   const router = useRouter();
   const { t } = useLanguage();
 
@@ -83,164 +99,646 @@ export default function Prasadam() {
     useState<Category>("all");
 
   const [cart, setCart] =
-    useState<Record<number, number>>({});
+    useState<Cart>({});
 
-  const filteredProducts =
-    category === "all"
-      ? products
-      : products.filter(
-          (product) =>
-            product.category === category
-        );
+  const [cartLoaded, setCartLoaded] =
+    useState(false);
+
+  /* =======================================================
+     LOAD CART
+  ======================================================= */
+
+  useEffect(() => {
+    try {
+      const savedCart =
+        localStorage.getItem("prasadam-cart");
+
+      if (savedCart) {
+        const parsedCart =
+          JSON.parse(savedCart) as Cart;
+
+        setCart(parsedCart);
+      }
+    } catch (error) {
+      console.error(
+        "Failed to load prasadam cart:",
+        error
+      );
+    } finally {
+      setCartLoaded(true);
+    }
+  }, []);
+
+  /* =======================================================
+     SAVE CART
+  ======================================================= */
+
+  useEffect(() => {
+    if (!cartLoaded) return;
+
+    localStorage.setItem(
+      "prasadam-cart",
+      JSON.stringify(cart)
+    );
+
+    /*
+      Header badge future me update karna ho
+      to ye event use kar sakte ho.
+    */
+    window.dispatchEvent(
+      new Event("prasadam-cart-updated")
+    );
+  }, [cart, cartLoaded]);
+
+  /* =======================================================
+     FILTER PRODUCTS
+  ======================================================= */
+
+  const filteredProducts = useMemo(() => {
+    if (category === "all") {
+      return products;
+    }
+
+    return products.filter(
+      (product) =>
+        product.category === category
+    );
+  }, [category]);
+
+  /* =======================================================
+     CART FUNCTIONS
+  ======================================================= */
 
   const increase = (id: number) => {
-    setCart((prev) => ({
-      ...prev,
-      [id]: (prev[id] || 0) + 1,
+    setCart((previousCart) => ({
+      ...previousCart,
+
+      [id]:
+        (previousCart[id] ?? 0) + 1,
     }));
   };
 
   const decrease = (id: number) => {
-    setCart((prev) => {
-      const quantity = prev[id] || 0;
+    setCart((previousCart) => {
+      const currentQuantity =
+        previousCart[id] ?? 0;
 
-      if (quantity <= 1) {
-        const updated = { ...prev };
+      if (currentQuantity <= 1) {
+        const updatedCart = {
+          ...previousCart,
+        };
 
-        delete updated[id];
+        delete updatedCart[id];
 
-        return updated;
+        return updatedCart;
       }
 
       return {
-        ...prev,
-        [id]: quantity - 1,
+        ...previousCart,
+
+        [id]:
+          currentQuantity - 1,
       };
     });
   };
 
-  const totalItems =
-    Object.values(cart).reduce(
-      (sum, quantity) =>
-        sum + quantity,
-      0
-    );
-
-  const totalAmount =
-    products.reduce(
-      (sum, product) =>
-        sum +
-        product.price *
-          (cart[product.id] || 0),
-      0
-    );
-
-  const goToCart = () => {
-    router.push(
-      `/prasadam/cart?items=${totalItems}&amount=${totalAmount}`
-    );
-  };
+  /* =======================================================
+     UI
+  ======================================================= */
 
   return (
-    <main className="prasadamScreen">
-      {/* HEADER */}
+    <main
+      className="
+        min-h-[100dvh]
+        w-full
+        overflow-x-hidden
+        bg-[radial-gradient(circle_at_50%_-10%,#fffef9_0%,#fffaf0_42%,#f6ead5_100%)]
+        pb-[110px]
+        text-[#4b4039]
 
-      <header className="prasadamHeader">
+        lg:ml-[92px]
+        lg:w-[calc(100%-92px)]
+        lg:bg-[#fff9ed]
+        lg:pb-14
+      "
+    >
+      {/* ===================================================
+          HEADER
+      =================================================== */}
+
+      <header
+        className="
+          sticky
+          top-0
+          z-30
+          flex
+          h-[68px]
+          items-center
+          justify-between
+          border-b
+          border-[#eadbc5]
+          bg-[#fffdf8]/95
+          px-3
+          backdrop-blur-md
+
+          sm:h-[74px]
+          sm:px-5
+
+          md:h-[80px]
+          md:px-7
+
+          lg:static
+          lg:h-[84px]
+          lg:px-10
+        "
+      >
+        {/* BACK */}
+
         <button
           type="button"
-          className="prasadamBack"
           onClick={() => router.back()}
           aria-label={t("back")}
+          className="
+            grid
+            h-9
+            w-9
+            shrink-0
+            place-items-center
+            rounded-full
+            border
+            border-[#eadbc5]
+            bg-[#fffdf8]
+            text-[27px]
+            leading-none
+            text-[#a71919]
+            shadow-sm
+            transition
+
+            active:scale-95
+
+            sm:h-10
+            sm:w-10
+
+            lg:h-11
+            lg:w-11
+            lg:hover:border-[#c99435]
+            lg:hover:bg-[#fff8ea]
+          "
         >
           ‹
         </button>
 
-        <div className="headerContent">
-          <span className="headerEyebrow">
+        {/* TITLE */}
+
+        <div
+          className="
+            flex-1
+            text-center
+
+            lg:ml-4
+            lg:flex-none
+            lg:text-left
+          "
+        >
+          <span
+            className="
+              hidden
+              text-[10px]
+              font-bold
+              uppercase
+              tracking-[1.3px]
+              text-[#9a762f]
+
+              lg:block
+            "
+          >
             Shri Govardhannath Haveli
           </span>
 
-          <h1>{t("prasadam")}</h1>
+          <h1
+            className="
+              m-0
+              font-serif
+              text-[22px]
+              font-semibold
+              text-[#641010]
+
+              sm:text-2xl
+
+              md:text-[27px]
+            "
+          >
+            {t("prasadam")}
+          </h1>
         </div>
 
-        <div className="headerSpace" />
+        {/* CART ICON */}
+
+        <button
+          type="button"
+          onClick={() =>
+            router.push("/prasadam/cart")
+          }
+          aria-label="Open Cart"
+          className="
+            relative
+            grid
+            h-9
+            w-9
+            shrink-0
+            place-items-center
+            rounded-full
+            border
+            border-[#eadbc5]
+            bg-[#fffdf8]
+            text-[#a71919]
+            shadow-sm
+            transition
+
+            active:scale-95
+
+            sm:h-10
+            sm:w-10
+
+            lg:ml-auto
+            lg:h-11
+            lg:w-11
+            lg:hover:border-[#c99435]
+            lg:hover:bg-[#fff8ea]
+          "
+        >
+          <CartIcon />
+
+          {/* CART COUNT */}
+
+          {Object.values(cart).reduce(
+            (total, quantity) =>
+              total + quantity,
+            0
+          ) > 0 && (
+            <span
+              className="
+                absolute
+                -right-1
+                -top-1
+                grid
+                min-h-[17px]
+                min-w-[17px]
+                place-items-center
+                rounded-full
+                bg-[#e74b18]
+                px-1
+                text-[8px]
+                font-bold
+                text-white
+              "
+            >
+              {Object.values(cart).reduce(
+                (total, quantity) =>
+                  total + quantity,
+                0
+              )}
+            </span>
+          )}
+        </button>
       </header>
 
-      {/* DESKTOP HERO */}
+      {/* ===================================================
+          CONTENT
+      =================================================== */}
 
-      <section className="desktopHero">
-        <div>
-          <span className="heroLabel">
-            Sacred Offering
-          </span>
+      <div
+        className="
+          mx-auto
+          w-full
+          max-w-[1420px]
 
-          <h2>{t("prasadam")}</h2>
+          lg:px-8
 
-          <p>
-            Choose blessed prasadam and sacred
-            offerings from Shri Govardhannath Haveli.
-          </p>
-        </div>
+          xl:px-10
+        "
+      >
+        {/* =================================================
+            DESKTOP HERO
+        ================================================= */}
 
-        <div className="heroIcon">
-          🛕
-        </div>
-      </section>
+        <section
+          className="
+            hidden
 
-      {/* CATEGORIES */}
+            lg:mt-7
+            lg:flex
+            lg:min-h-[150px]
+            lg:items-center
+            lg:justify-between
+            lg:gap-8
+            lg:rounded-[22px]
+            lg:border
+            lg:border-[#eadbc5]
+            lg:bg-gradient-to-br
+            lg:from-[#fffdf8]
+            lg:to-[#fff3df]
+            lg:px-8
+            lg:py-7
+            lg:shadow-[0_10px_30px_rgba(80,45,15,0.06)]
+          "
+        >
+          <div>
+            <span
+              className="
+                mb-2
+                block
+                text-[11px]
+                font-bold
+                uppercase
+                tracking-[1.4px]
+                text-[#c99435]
+              "
+            >
+              Sacred Offering
+            </span>
 
-      <div className="categories">
-        {categories.map((item) => (
-          <button
-            type="button"
-            key={item.id}
-            className={
-              category === item.id
-                ? "selectedCategory"
-                : ""
-            }
-            onClick={() =>
-              setCategory(item.id)
-            }
+            <h2
+              className="
+                m-0
+                font-serif
+                text-[35px]
+                font-semibold
+                text-[#641010]
+              "
+            >
+              {t("prasadam")}
+            </h2>
+
+            <p
+              className="
+                mt-2
+                max-w-[540px]
+                text-sm
+                leading-6
+                text-[#776d65]
+              "
+            >
+              Choose blessed prasadam and sacred
+              offerings from Shri Govardhannath Haveli.
+            </p>
+          </div>
+
+          <div
+            className="
+              grid
+              h-[86px]
+              w-[86px]
+              shrink-0
+              place-items-center
+              rounded-full
+              border
+              border-[#dec182]
+              bg-[#fffdf8]
+              text-[42px]
+            "
           >
-            {t(item.labelKey)}
-          </button>
-        ))}
-      </div>
+            🛕
+          </div>
+        </section>
 
-      {/* MAIN LAYOUT */}
+        {/* =================================================
+            CATEGORIES
+        ================================================= */}
 
-      <div className="prasadamLayout">
-        {/* PRODUCTS */}
+        <div
+          className="
+            flex
+            w-full
+            gap-2
+            overflow-x-auto
+            px-3
+            py-3
+            [scrollbar-width:none]
+            [&::-webkit-scrollbar]:hidden
 
-        <section className="productList">
+            sm:px-5
+            sm:py-4
+
+            md:justify-center
+            md:px-6
+
+            lg:justify-start
+            lg:px-0
+            lg:py-5
+          "
+        >
+          {categories.map((item) => {
+            const active =
+              category === item.id;
+
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() =>
+                  setCategory(item.id)
+                }
+                className={`
+                  h-9
+                  shrink-0
+                  rounded-lg
+                  border
+                  px-4
+                  text-[10px]
+                  font-semibold
+                  transition-all
+
+                  sm:h-10
+                  sm:px-5
+                  sm:text-[11px]
+
+                  md:text-xs
+
+                  ${
+                    active
+                      ? `
+                        border-[#e74b18]
+                        bg-[#e74b18]
+                        text-white
+                        shadow-sm
+                      `
+                      : `
+                        border-[#eadbc5]
+                        bg-[#fffdf8]
+                        text-[#776d65]
+
+                        lg:hover:-translate-y-0.5
+                        lg:hover:border-[#e74b18]
+                        lg:hover:text-[#e74b18]
+                      `
+                  }
+                `}
+              >
+                {t(item.labelKey)}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* =================================================
+            PRODUCT GRID
+        ================================================= */}
+
+        <section
+          className="
+            grid
+            grid-cols-1
+            gap-3
+            px-3
+
+            sm:px-5
+
+            md:grid-cols-2
+            md:gap-4
+            md:px-6
+
+            lg:grid-cols-3
+            lg:px-0
+
+            xl:grid-cols-4
+            xl:gap-5
+          "
+        >
           {filteredProducts.map(
             (product) => {
               const quantity =
-                cart[product.id] || 0;
+                cart[product.id] ?? 0;
 
               return (
-                <div
+                <article
                   key={product.id}
-                  className="productCard"
+                  className="
+                    flex
+                    min-w-0
+                    items-center
+                    gap-3
+                    rounded-xl
+                    border
+                    border-[#eee0cc]
+                    bg-[#fffdf9]
+                    p-2.5
+                    shadow-[0_4px_14px_rgba(79,43,14,0.04)]
+                    transition-all
+
+                    sm:p-3
+
+                    md:min-h-[125px]
+
+                    lg:min-h-[310px]
+                    lg:flex-col
+                    lg:items-stretch
+                    lg:p-3.5
+                    lg:hover:-translate-y-1
+                    lg:hover:border-[#d7b97f]
+                    lg:hover:shadow-[0_12px_30px_rgba(79,43,14,0.09)]
+                  "
                 >
-                  <div className="productImage">
+                  {/* PRODUCT IMAGE */}
+
+                  <div
+                    className="
+                      h-[72px]
+                      w-[72px]
+                      shrink-0
+                      overflow-hidden
+                      rounded-lg
+                      bg-[#f4e5c8]
+
+                      sm:h-[82px]
+                      sm:w-[82px]
+
+                      md:h-[94px]
+                      md:w-[94px]
+                      md:rounded-xl
+
+                      lg:h-[175px]
+                      lg:w-full
+                    "
+                  >
                     <img
                       src={product.image}
-                      alt={t(product.titleKey)}
+                      alt={t(
+                        product.titleKey
+                      )}
+                      loading="lazy"
+                      className="
+                        h-full
+                        w-full
+                        object-cover
+                        transition-transform
+                        duration-300
+
+                        lg:hover:scale-[1.03]
+                      "
                     />
                   </div>
 
-                  <div className="productInfo">
-                    <span className="productLabel">
+                  {/* PRODUCT INFO */}
+
+                  <div
+                    className="
+                      min-w-0
+                      flex-1
+
+                      lg:px-1
+                    "
+                  >
+                    <span
+                      className="
+                        hidden
+                        text-[9px]
+                        font-bold
+                        uppercase
+                        tracking-[1px]
+                        text-[#c99435]
+
+                        md:block
+                      "
+                    >
                       {t("prasadam")}
                     </span>
 
-                    <h2>
-                      {t(product.titleKey)}
+                    <h2
+                      className="
+                        truncate
+                        font-serif
+                        text-[14px]
+                        font-semibold
+                        text-[#332820]
+
+                        sm:text-[15px]
+
+                        md:mt-1
+                        md:text-[17px]
+
+                        lg:whitespace-normal
+                        lg:text-[19px]
+                      "
+                    >
+                      {t(
+                        product.titleKey
+                      )}
                     </h2>
 
-                    <p>
+                    <p
+                      className="
+                        mt-1
+                        text-[12px]
+                        font-bold
+                        text-[#a71919]
+
+                        md:mt-2
+                        md:text-[13px]
+
+                        lg:text-sm
+                      "
+                    >
                       ₹
                       {product.price.toLocaleString(
                         "en-IN"
@@ -248,1434 +746,319 @@ export default function Prasadam() {
                     </p>
                   </div>
 
-                  <div className="quantity">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        decrease(product.id)
-                      }
-                      aria-label={t(
-                        "decreaseQuantity"
-                      )}
-                    >
-                      −
-                    </button>
+                  {/* =================================================
+                      ADD TO CART / QUANTITY
+                  ================================================= */}
 
-                    <span>{quantity}</span>
+                  <div
+                    className="
+                      shrink-0
 
-                    <button
-                      type="button"
-                      className="plus"
-                      onClick={() =>
-                        increase(product.id)
-                      }
-                      aria-label={t(
-                        "increaseQuantity"
-                      )}
-                    >
-                      +
-                    </button>
+                      lg:mt-auto
+                      lg:w-full
+                    "
+                  >
+                    {quantity === 0 ? (
+                      /* ADD TO CART */
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          increase(
+                            product.id
+                          )
+                        }
+                        className="
+                          flex
+                          h-9
+                          min-w-[100px]
+                          items-center
+                          justify-center
+                          gap-1.5
+                          rounded-lg
+                          border
+                          border-[#e74b18]
+                          bg-[#e74b18]
+                          px-3
+                          text-[10px]
+                          font-bold
+                          text-white
+                          shadow-sm
+                          transition-all
+
+                          active:scale-[0.97]
+
+                          sm:h-10
+                          sm:min-w-[110px]
+                          sm:text-[11px]
+
+                          lg:w-full
+                          lg:text-xs
+                          lg:hover:bg-[#d83f11]
+                        "
+                      >
+                        <CartIconWhite />
+
+                        Add to Cart
+                      </button>
+                    ) : (
+                      /* QUANTITY */
+
+                      <div
+                        className="
+                          flex
+                          flex-col
+                          gap-1
+
+                          lg:w-full
+                        "
+                      >
+                        <div
+                          className="
+                            flex
+                            h-9
+                            items-center
+                            overflow-hidden
+                            rounded-lg
+                            border
+                            border-[#e74b18]
+                            bg-white
+                            shadow-sm
+
+                            sm:h-10
+
+                            lg:w-full
+                          "
+                        >
+                          {/* MINUS */}
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              decrease(
+                                product.id
+                              )
+                            }
+                            aria-label={t(
+                              "decreaseQuantity"
+                            )}
+                            className="
+                              grid
+                              h-full
+                              w-9
+                              shrink-0
+                              place-items-center
+                              bg-white
+                              text-lg
+                              font-bold
+                              text-[#e74b18]
+                              transition
+
+                              active:bg-[#fff2eb]
+
+                              sm:w-10
+
+                              lg:hover:bg-[#fff2eb]
+                            "
+                          >
+                            −
+                          </button>
+
+                          {/* NUMBER */}
+
+                          <span
+                            className="
+                              grid
+                              h-full
+                              min-w-[34px]
+                              flex-1
+                              place-items-center
+                              border-x
+                              border-[#f1d6cb]
+                              bg-[#fffaf7]
+                              px-2
+                              text-xs
+                              font-bold
+                              text-[#641010]
+
+                              sm:text-[13px]
+                            "
+                          >
+                            {quantity}
+                          </span>
+
+                          {/* PLUS */}
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              increase(
+                                product.id
+                              )
+                            }
+                            aria-label={t(
+                              "increaseQuantity"
+                            )}
+                            className="
+                              grid
+                              h-full
+                              w-9
+                              shrink-0
+                              place-items-center
+                              bg-[#e74b18]
+                              text-lg
+                              font-bold
+                              text-white
+                              transition
+
+                              active:bg-[#c83c10]
+
+                              sm:w-10
+
+                              lg:hover:bg-[#d83f11]
+                            "
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        <span
+                          className="
+                            text-center
+                            text-[8px]
+                            font-semibold
+                            text-[#8d742e]
+
+                            sm:text-[9px]
+                          "
+                        >
+                          ✓ Added to Cart
+                        </span>
+                      </div>
+                    )}
                   </div>
-                </div>
+                </article>
               );
             }
           )}
         </section>
 
-        {/* DESKTOP CART SUMMARY */}
+        {/* =================================================
+            DECORATION
+        ================================================= */}
 
-        <aside className="desktopCart">
-          <div className="cartSummary">
-            <span className="summaryLabel">
-              {t("viewCart")}
-            </span>
+        <div
+          className="
+            mt-8
+            flex
+            items-center
+            justify-center
+            gap-1.5
+            px-4
+            text-[#c99435]
 
-            <h2>{t("prasadam")}</h2>
-
-            <div className="summaryRow">
-              <span>
-                Items
-              </span>
-
-              <strong>
-                {totalItems}
-              </strong>
-            </div>
-
-            <div className="summaryRow">
-              <span>
-                Total
-              </span>
-
-              <strong>
-                ₹
-                {totalAmount.toLocaleString(
-                  "en-IN"
-                )}
-              </strong>
-            </div>
-
-            <button
-              type="button"
-              className="desktopCartButton"
-              disabled={totalItems === 0}
-              onClick={goToCart}
-            >
-              {t("viewCart")}
-            </button>
-          </div>
-        </aside>
-      </div>
-
-      {/* MOBILE CART */}
-
-      {totalItems > 0 && (
-        <button
-          type="button"
-          className="mobileCart"
-          onClick={goToCart}
+            lg:mt-12
+          "
         >
-          <span>
-            {t("viewCart")} ({totalItems})
-          </span>
+          <span
+            className="
+              h-px
+              w-12
+              bg-gradient-to-r
+              from-transparent
+              to-[#d8b66c]
 
-          <strong>
-            ₹
-            {totalAmount.toLocaleString(
-              "en-IN"
-            )}
-          </strong>
-        </button>
-      )}
+              lg:w-24
+            "
+          />
 
-      {/* DECORATION */}
+          <b className="font-normal">
+            ❧
+          </b>
 
-      <div className="prasadamDecoration">
-        <span />
-        <b>❧</b>
-        <b>❧</b>
-        <b>❧</b>
-        <span />
+          <b className="font-normal">
+            ❧
+          </b>
+
+          <b className="font-normal">
+            ❧
+          </b>
+
+          <span
+            className="
+              h-px
+              w-12
+              bg-gradient-to-l
+              from-transparent
+              to-[#d8b66c]
+
+              lg:w-24
+            "
+          />
+        </div>
       </div>
-
-      <style jsx global>{`
-        /* =========================================
-           PAGE
-        ========================================= */
-
-        .prasadamScreen {
-          width: 100%;
-
-          min-height: 100dvh;
-
-          padding-bottom:
-            calc(
-              90px +
-              env(safe-area-inset-bottom)
-            );
-
-          background:
-            radial-gradient(
-              circle at 50% -10%,
-              #fffef9 0,
-              #fffaf0 42%,
-              #f6ead5 100%
-            );
-
-          color: #4b4039;
-        }
-
-        .desktopHero,
-        .desktopCart {
-          display: none;
-        }
-
-        /* =========================================
-           HEADER
-        ========================================= */
-
-        .prasadamHeader {
-          position: relative;
-
-          height: 72px;
-
-          display: flex;
-
-          align-items: center;
-          justify-content: space-between;
-
-          padding: 0 15px;
-
-          border-bottom:
-            1px solid #eadbc5;
-
-          background:
-            rgba(
-              255,
-              253,
-              248,
-              0.98
-            );
-        }
-
-        .prasadamBack {
-          width: 38px;
-          height: 38px;
-
-          display: grid;
-
-          place-items: center;
-
-          flex-shrink: 0;
-
-          padding: 0;
-
-          border: 1px solid #eadbc5;
-
-          border-radius: 50%;
-
-          background: #fffdf8;
-
-          color: #a71919;
-
-          font-size: 29px;
-
-          line-height: 1;
-
-          box-shadow:
-            0 3px 10px
-            rgba(70, 40, 10, 0.05);
-        }
-
-        .headerContent {
-          flex: 1;
-
-          text-align: center;
-        }
-
-        .headerEyebrow {
-          display: none;
-        }
-
-        .prasadamHeader h1 {
-          margin: 0;
-
-          color: #641010;
-
-          font-family:
-            Georgia,
-            "Times New Roman",
-            serif;
-
-          font-size: 23px;
-        }
-
-        .headerSpace {
-          width: 38px;
-
-          flex-shrink: 0;
-        }
-
-        /* =========================================
-           CATEGORIES
-        ========================================= */
-
-        .categories {
-          display: flex;
-
-          gap: 7px;
-
-          overflow-x: auto;
-
-          padding:
-            13px 15px 10px;
-
-          scrollbar-width: none;
-        }
-
-        .categories::-webkit-scrollbar {
-          display: none;
-        }
-
-        .categories button {
-          flex-shrink: 0;
-
-          height: 35px;
-
-          padding:
-            0 15px;
-
-          border:
-            1px solid #eadbc5;
-
-          border-radius: 8px;
-
-          background: #fffdf8;
-
-          color: #776d65;
-
-          font-size: 10px;
-
-          font-weight: 600;
-
-          transition:
-            background 0.18s ease,
-            border-color 0.18s ease,
-            color 0.18s ease,
-            transform 0.18s ease;
-        }
-
-        .categories button.selectedCategory {
-          border-color: #e74b18;
-
-          background: #e74b18;
-
-          color: white;
-        }
-
-        /* =========================================
-           PRODUCTS
-        ========================================= */
-
-        .productList {
-          display: flex;
-
-          flex-direction: column;
-
-          gap: 9px;
-
-          padding: 0 15px;
-        }
-
-        .productCard {
-          min-height: 82px;
-
-          display: flex;
-
-          align-items: center;
-
-          gap: 10px;
-
-          padding: 8px;
-
-          border:
-            1px solid #eee0cc;
-
-          border-radius: 10px;
-
-          background: #fffdf9;
-
-          box-shadow:
-            0 4px 14px
-            rgba(79, 43, 14, 0.04);
-
-          transition:
-            transform 0.18s ease,
-            border-color 0.18s ease,
-            box-shadow 0.18s ease;
-        }
-
-        .productImage {
-          width: 67px;
-          height: 67px;
-
-          flex-shrink: 0;
-
-          overflow: hidden;
-
-          border-radius: 9px;
-
-          background: #f4e5c8;
-        }
-
-        .productImage img {
-          width: 100%;
-          height: 100%;
-
-          display: block;
-
-          object-fit: cover;
-        }
-
-        .productInfo {
-          flex: 1;
-
-          min-width: 0;
-        }
-
-        .productLabel {
-          display: none;
-        }
-
-        .productInfo h2 {
-          margin:
-            0 0 5px;
-
-          overflow: hidden;
-
-          color: #332820;
-
-          font-family:
-            Georgia,
-            "Times New Roman",
-            serif;
-
-          font-size: 14px;
-
-          text-overflow: ellipsis;
-
-          white-space: nowrap;
-        }
-
-        .productInfo p {
-          margin: 0;
-
-          color: #776d65;
-
-          font-size: 11px;
-        }
-
-        /* =========================================
-           QUANTITY
-        ========================================= */
-
-        .quantity {
-          display: flex;
-
-          align-items: center;
-
-          flex-shrink: 0;
-
-          overflow: hidden;
-
-          border:
-            1px solid #eadbc5;
-
-          border-radius: 7px;
-
-          background: white;
-        }
-
-        .quantity button {
-          width: 28px;
-          height: 34px;
-
-          border: 0;
-
-          background: white;
-
-          color: #777;
-
-          font-size: 18px;
-        }
-
-        .quantity .plus {
-          background: #e74b18;
-
-          color: white;
-
-          font-weight: 700;
-        }
-
-        .quantity span {
-          width: 25px;
-
-          text-align: center;
-
-          color: #443932;
-
-          font-size: 12px;
-
-          font-weight: 700;
-        }
-
-        /* =========================================
-           MOBILE CART
-        ========================================= */
-
-        .mobileCart {
-          position: fixed;
-
-          z-index: 30;
-
-          left: 15px;
-          right: 15px;
-
-          bottom:
-            calc(
-              15px +
-              env(safe-area-inset-bottom)
-            );
-
-          width:
-            calc(100% - 30px);
-
-          height: 49px;
-
-          display: flex;
-
-          align-items: center;
-          justify-content: space-between;
-
-          padding: 0 18px;
-
-          border: 0;
-
-          border-radius: 9px;
-
-          background: #a71919;
-
-          color: white;
-
-          font-size: 13px;
-
-          font-weight: 700;
-
-          box-shadow:
-            0 8px 22px
-            rgba(113, 17, 17, 0.2);
-        }
-
-        .mobileCart strong {
-          font-size: 14px;
-        }
-
-        /* =========================================
-           DECORATION
-        ========================================= */
-
-        .prasadamDecoration {
-          display: flex;
-
-          align-items: center;
-          justify-content: center;
-
-          gap: 6px;
-
-          margin-top: 24px;
-
-          color: #c99435;
-        }
-
-        .prasadamDecoration span {
-          width: 45px;
-          height: 1px;
-
-          background:
-            linear-gradient(
-              to right,
-              transparent,
-              #d8b66c
-            );
-        }
-
-        .prasadamDecoration
-          span:last-child {
-          background:
-            linear-gradient(
-              to left,
-              transparent,
-              #d8b66c
-            );
-        }
-
-        .prasadamDecoration b {
-          font-size: 13px;
-
-          font-weight: 400;
-        }
-
-        /* =========================================
-           SMALL MOBILE
-        ========================================= */
-
-        @media (max-width: 359px) {
-          .prasadamHeader {
-            height: 64px;
-
-            padding: 0 10px;
-          }
-
-          .prasadamBack {
-            width: 34px;
-            height: 34px;
-
-            font-size: 26px;
-          }
-
-          .headerSpace {
-            width: 34px;
-          }
-
-          .prasadamHeader h1 {
-            font-size: 20px;
-          }
-
-          .categories {
-            gap: 6px;
-
-            padding:
-              11px 10px 9px;
-          }
-
-          .categories button {
-            height: 33px;
-
-            padding:
-              0 12px;
-
-            font-size: 9px;
-          }
-
-          .productList {
-            gap: 7px;
-
-            padding:
-              0 10px;
-          }
-
-          .productCard {
-            gap: 8px;
-
-            padding: 7px;
-          }
-
-          .productImage {
-            width: 60px;
-            height: 60px;
-          }
-
-          .productInfo h2 {
-            font-size: 12px;
-          }
-
-          .productInfo p {
-            font-size: 10px;
-          }
-
-          .quantity button {
-            width: 25px;
-            height: 31px;
-
-            font-size: 16px;
-          }
-
-          .quantity span {
-            width: 22px;
-
-            font-size: 11px;
-          }
-
-          .mobileCart {
-            left: 10px;
-            right: 10px;
-
-            width:
-              calc(100% - 20px);
-
-            height: 46px;
-
-            padding:
-              0 14px;
-
-            font-size: 12px;
-          }
-        }
-
-        /* =========================================
-           LARGE MOBILE
-        ========================================= */
-
-        @media (min-width: 430px) and (max-width: 599px) {
-          .prasadamHeader {
-            height: 78px;
-          }
-
-          .prasadamHeader h1 {
-            font-size: 25px;
-          }
-
-          .categories {
-            gap: 9px;
-
-            padding:
-              16px 20px 12px;
-          }
-
-          .categories button {
-            height: 39px;
-
-            padding:
-              0 18px;
-
-            font-size: 11px;
-          }
-
-          .productList {
-            gap: 11px;
-
-            padding:
-              0 20px;
-          }
-
-          .productCard {
-            min-height: 96px;
-
-            gap: 12px;
-
-            padding: 10px;
-
-            border-radius: 12px;
-          }
-
-          .productImage {
-            width: 79px;
-            height: 79px;
-
-            border-radius: 10px;
-          }
-
-          .productInfo h2 {
-            font-size: 16px;
-          }
-
-          .productInfo p {
-            font-size: 12px;
-          }
-
-          .quantity button {
-            width: 32px;
-            height: 38px;
-          }
-
-          .quantity span {
-            width: 28px;
-
-            font-size: 13px;
-          }
-
-          .mobileCart {
-            left: 20px;
-            right: 20px;
-
-            width:
-              calc(100% - 40px);
-
-            height: 52px;
-
-            padding:
-              0 20px;
-
-            border-radius: 11px;
-
-            font-size: 14px;
-          }
-        }
-
-        /* =========================================
-           TABLET
-        ========================================= */
-
-        @media (min-width: 600px) and (max-width: 1023px) {
-          .prasadamScreen {
-            min-height: 100vh;
-          }
-
-          .prasadamHeader {
-            height: 82px;
-
-            padding: 0 28px;
-          }
-
-          .prasadamBack {
-            width: 42px;
-            height: 42px;
-          }
-
-          .headerSpace {
-            width: 42px;
-          }
-
-          .prasadamHeader h1 {
-            font-size: 28px;
-          }
-
-          .categories {
-            width:
-              min(
-                calc(100% - 48px),
-                760px
-              );
-
-            justify-content: center;
-
-            margin: 0 auto;
-
-            padding:
-              22px 0 18px;
-
-            overflow: visible;
-          }
-
-          .categories button {
-            height: 42px;
-
-            padding:
-              0 22px;
-
-            font-size: 12px;
-          }
-
-          .productList {
-            width:
-              min(
-                calc(100% - 48px),
-                760px
-              );
-
-            display: grid;
-
-            grid-template-columns:
-              repeat(
-                2,
-                minmax(0, 1fr)
-              );
-
-            gap: 14px;
-
-            margin: 0 auto;
-
-            padding: 0;
-          }
-
-          .productCard {
-            min-height: 125px;
-
-            padding: 13px;
-
-            border-radius: 15px;
-          }
-
-          .productImage {
-            width: 95px;
-            height: 95px;
-
-            border-radius: 12px;
-          }
-
-          .productLabel {
-            display: block;
-
-            margin-bottom: 4px;
-
-            color: #c99435;
-
-            font-size: 9px;
-
-            font-weight: 700;
-
-            letter-spacing: 0.8px;
-
-            text-transform: uppercase;
-          }
-
-          .productInfo h2 {
-            font-size: 18px;
-          }
-
-          .productInfo p {
-            margin-top: 7px;
-
-            font-size: 13px;
-          }
-
-          .quantity button {
-            width: 32px;
-            height: 40px;
-          }
-
-          .quantity span {
-            width: 28px;
-
-            font-size: 13px;
-          }
-
-          .mobileCart {
-            left: 50%;
-            right: auto;
-
-            width:
-              min(
-                calc(100% - 48px),
-                760px
-              );
-
-            height: 54px;
-
-            transform:
-              translateX(-50%);
-
-            border-radius: 11px;
-
-            font-size: 14px;
-          }
-        }
-
-        /* =========================================
-           DESKTOP WEBSITE
-        ========================================= */
-
-        @media (min-width: 1024px) {
-          .prasadamScreen {
-            min-height: 100vh;
-
-            padding:
-              0 40px 55px;
-
-            background:
-              radial-gradient(
-                circle at top right,
-                rgba(
-                  201,
-                  148,
-                  53,
-                  0.12
-                ),
-                transparent 30%
-              ),
-              #fff9ed;
-          }
-
-          .prasadamHeader {
-            height: 84px;
-
-            margin:
-              0 -40px;
-
-            justify-content:
-              flex-start;
-
-            gap: 18px;
-
-            padding: 0 42px;
-
-            background: #fffdf8;
-          }
-
-          .prasadamBack {
-            width: 44px;
-            height: 44px;
-
-            font-size: 31px;
-          }
-
-          .headerContent {
-            flex: none;
-
-            text-align: left;
-          }
-
-          .headerEyebrow {
-            display: block;
-
-            margin-bottom: 2px;
-
-            color: #9a762f;
-
-            font-size: 10px;
-
-            font-weight: 700;
-
-            letter-spacing: 1.3px;
-
-            text-transform: uppercase;
-          }
-
-          .prasadamHeader h1 {
-            font-size: 26px;
-          }
-
-          .headerSpace {
-            display: none;
-          }
-
-          /* HERO */
-
-          .desktopHero {
-            width: 100%;
-
-            max-width: 1320px;
-
-            min-height: 150px;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: space-between;
-
-            gap: 30px;
-
-            margin:
-              30px auto 0;
-
-            padding:
-              28px 34px;
-
-            border:
-              1px solid #eadbc5;
-
-            border-radius: 22px;
-
-            background:
-              linear-gradient(
-                135deg,
-                #fffdf8,
-                #fff3df
-              );
-
-            box-shadow:
-              0 10px 30px
-              rgba(80, 45, 15, 0.06);
-          }
-
-          .heroLabel {
-            display: block;
-
-            margin-bottom: 7px;
-
-            color: #c99435;
-
-            font-size: 11px;
-
-            font-weight: 700;
-
-            letter-spacing: 1.4px;
-
-            text-transform: uppercase;
-          }
-
-          .desktopHero h2 {
-            margin: 0;
-
-            color: #641010;
-
-            font-family:
-              Georgia,
-              "Times New Roman",
-              serif;
-
-            font-size: 35px;
-          }
-
-          .desktopHero p {
-            max-width: 520px;
-
-            margin: 9px 0 0;
-
-            color: #776d65;
-
-            font-size: 14px;
-
-            line-height: 1.5;
-          }
-
-          .heroIcon {
-            width: 86px;
-            height: 86px;
-
-            display: grid;
-            place-items: center;
-
-            flex-shrink: 0;
-
-            border:
-              1px solid #dec182;
-
-            border-radius: 50%;
-
-            background: #fffdf8;
-
-            font-size: 42px;
-          }
-
-          /* CATEGORIES */
-
-          .categories {
-            width: 100%;
-
-            max-width: 1320px;
-
-            justify-content: flex-start;
-
-            gap: 10px;
-
-            margin: 0 auto;
-
-            padding:
-              25px 0 20px;
-
-            overflow: visible;
-          }
-
-          .categories button {
-            height: 42px;
-
-            padding:
-              0 22px;
-
-            border-radius: 10px;
-
-            font-size: 12px;
-          }
-
-          .categories button:hover {
-            border-color: #e74b18;
-
-            color: #e74b18;
-
-            transform:
-              translateY(-1px);
-          }
-
-          .categories
-            button.selectedCategory:hover {
-            color: white;
-          }
-
-          /* LAYOUT */
-
-          .prasadamLayout {
-            width: 100%;
-
-            max-width: 1320px;
-
-            display: grid;
-
-            grid-template-columns:
-              minmax(0, 1fr)
-              330px;
-
-            align-items: start;
-
-            gap: 26px;
-
-            margin: 0 auto;
-          }
-
-          .productList {
-            display: grid;
-
-            grid-template-columns:
-              repeat(
-                2,
-                minmax(0, 1fr)
-              );
-
-            gap: 18px;
-
-            padding: 0;
-          }
-
-          .productCard {
-            min-height: 155px;
-
-            gap: 15px;
-
-            padding: 15px;
-
-            border-radius: 16px;
-          }
-
-          .productCard:hover {
-            transform:
-              translateY(-3px);
-
-            border-color: #d7b97f;
-
-            box-shadow:
-              0 12px 30px
-              rgba(79, 43, 14, 0.09);
-          }
-
-          .productImage {
-            width: 120px;
-            height: 120px;
-
-            border-radius: 13px;
-          }
-
-          .productLabel {
-            display: block;
-
-            margin-bottom: 5px;
-
-            color: #c99435;
-
-            font-size: 9px;
-
-            font-weight: 700;
-
-            letter-spacing: 1px;
-
-            text-transform: uppercase;
-          }
-
-          .productInfo h2 {
-            font-size: 20px;
-
-            white-space: normal;
-          }
-
-          .productInfo p {
-            margin-top: 8px;
-
-            color: #a71919;
-
-            font-size: 14px;
-
-            font-weight: 700;
-          }
-
-          .quantity {
-            border-radius: 9px;
-          }
-
-          .quantity button {
-            width: 34px;
-            height: 42px;
-
-            font-size: 19px;
-          }
-
-          .quantity span {
-            width: 30px;
-
-            font-size: 13px;
-          }
-
-          /* DESKTOP CART */
-
-          .desktopCart {
-            display: block;
-
-            position: sticky;
-
-            top: 25px;
-          }
-
-          .cartSummary {
-            padding: 25px 23px;
-
-            border:
-              1px solid #eadbc5;
-
-            border-radius: 18px;
-
-            background: #fffdf8;
-
-            box-shadow:
-              0 10px 30px
-              rgba(80, 45, 15, 0.07);
-          }
-
-          .summaryLabel {
-            display: block;
-
-            margin-bottom: 6px;
-
-            color: #c99435;
-
-            font-size: 10px;
-
-            font-weight: 700;
-
-            letter-spacing: 1.2px;
-
-            text-transform: uppercase;
-          }
-
-          .cartSummary h2 {
-            margin:
-              0 0 22px;
-
-            color: #641010;
-
-            font-family:
-              Georgia,
-              "Times New Roman",
-              serif;
-
-            font-size: 23px;
-          }
-
-          .summaryRow {
-            display: flex;
-
-            align-items: center;
-            justify-content: space-between;
-
-            gap: 12px;
-
-            padding:
-              12px 0;
-
-            border-bottom:
-              1px solid #eee0cc;
-
-            color: #776d65;
-
-            font-size: 12px;
-          }
-
-          .summaryRow strong {
-            color: #433932;
-
-            font-size: 13px;
-          }
-
-          .summaryRow:last-of-type
-            strong {
-            color: #a71919;
-
-            font-size: 17px;
-          }
-
-          .desktopCartButton {
-            width: 100%;
-            height: 50px;
-
-            margin-top: 22px;
-
-            border: 0;
-
-            border-radius: 10px;
-
-            background: #a71919;
-
-            color: white;
-
-            font-size: 14px;
-
-            font-weight: 700;
-
-            transition:
-              background 0.18s ease,
-              transform 0.18s ease;
-          }
-
-          .desktopCartButton:hover:not(
-              :disabled
-            ) {
-            background: #7f1111;
-
-            transform:
-              translateY(-1px);
-          }
-
-          .desktopCartButton:disabled {
-            opacity: 0.45;
-
-            cursor: not-allowed;
-          }
-
-          .mobileCart {
-            display: none;
-          }
-
-          .prasadamDecoration {
-            margin-top: 38px;
-          }
-
-          .prasadamDecoration span {
-            width: 100px;
-          }
-        }
-
-        /* =========================================
-           LARGE DESKTOP
-        ========================================= */
-
-        @media (min-width: 1440px) {
-          .desktopHero,
-          .categories,
-          .prasadamLayout {
-            max-width: 1420px;
-          }
-
-          .desktopHero {
-            min-height: 160px;
-
-            padding:
-              32px 40px;
-          }
-
-          .desktopHero h2 {
-            font-size: 39px;
-          }
-
-          .heroIcon {
-            width: 94px;
-            height: 94px;
-
-            font-size: 46px;
-          }
-
-          .prasadamLayout {
-            grid-template-columns:
-              minmax(0, 1fr)
-              360px;
-
-            gap: 30px;
-          }
-
-          .productList {
-            grid-template-columns:
-              repeat(
-                3,
-                minmax(0, 1fr)
-              );
-
-            gap: 20px;
-          }
-
-          .productCard {
-            min-height: 340px;
-
-            flex-direction: column;
-
-            align-items: stretch;
-
-            padding: 14px;
-          }
-
-          .productImage {
-            width: 100%;
-            height: 205px;
-
-            border-radius: 14px;
-          }
-
-          .productInfo {
-            padding:
-              4px 3px 0;
-          }
-
-          .productInfo h2 {
-            font-size: 21px;
-          }
-
-          .quantity {
-            width: fit-content;
-
-            margin-top: auto;
-          }
-
-          .cartSummary {
-            padding:
-              28px 26px;
-          }
-        }
-      `}</style>
     </main>
+  );
+}
+
+/* =========================================================
+   CART ICON
+========================================================= */
+
+function CartIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-[18px] w-[18px]"
+      aria-hidden="true"
+    >
+      <circle
+        cx="9"
+        cy="20"
+        r="1"
+      />
+
+      <circle
+        cx="18"
+        cy="20"
+        r="1"
+      />
+
+      <path d="M3 4h2l2.4 10.4a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 8H6" />
+    </svg>
+  );
+}
+
+function CartIconWhite() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+      aria-hidden="true"
+    >
+      <circle
+        cx="9"
+        cy="20"
+        r="1"
+      />
+
+      <circle
+        cx="18"
+        cy="20"
+        r="1"
+      />
+
+      <path d="M3 4h2l2.4 10.4a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 8H6" />
+    </svg>
   );
 }
