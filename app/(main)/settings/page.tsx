@@ -1,7 +1,11 @@
+
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../../lib/LanguageProvider";
+
+import DeleteAccountModal from "../../components/navigation/DeleteAccountModal";
 
 type LanguageCode = "en" | "hi" | "gu";
 
@@ -36,14 +40,11 @@ const languages: LanguageOption[] = [
 export default function SettingsPage() {
   const router = useRouter();
 
-  const {
-    language,
-    setLanguage,
-  } = useLanguage();
+  const { language, setLanguage } = useLanguage();
 
-  const handleLanguageChange = (
-    code: LanguageCode
-  ) => {
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+
+  const handleLanguageChange = (code: LanguageCode) => {
     setLanguage(code);
   };
 
@@ -399,17 +400,14 @@ export default function SettingsPage() {
               "
             >
               {languages.map((item) => {
-                const selected =
-                  language === item.code;
+                const selected = language === item.code;
 
                 return (
                   <button
                     key={item.code}
                     type="button"
                     onClick={() =>
-                      handleLanguageChange(
-                        item.code
-                      )
+                      handleLanguageChange(item.code)
                     }
                     aria-pressed={selected}
                     className={`
@@ -538,8 +536,7 @@ export default function SettingsPage() {
                             {item.nativeName}
                           </p>
 
-                          {item.nativeName !==
-                            item.name && (
+                          {item.nativeName !== item.name && (
                             <p
                               className="
                                 mt-[2px]
@@ -663,9 +660,7 @@ export default function SettingsPage() {
                 lg:text-[13px]
               "
             >
-              {getCurrentLanguageName(
-                language
-              )}
+              {getCurrentLanguageName(language)}
             </p>
           </div>
 
@@ -730,6 +725,93 @@ export default function SettingsPage() {
         </div>
 
         {/* =================================================
+            DELETE ACCOUNT
+        ================================================= */}
+
+        <section className="mt-4">
+          <button
+            type="button"
+            onClick={() => setShowDeleteAccount(true)}
+            className="
+              group
+              flex
+              min-h-[56px]
+              w-full
+              items-center
+              gap-3
+              rounded-[14px]
+              border
+              border-[#efc7c1]
+              bg-[#fff3f1]
+              px-3
+              text-left
+              text-[#b42318]
+              transition-all
+              hover:border-[#dfa69e]
+              hover:bg-[#ffe9e5]
+              active:scale-[0.99]
+            "
+          >
+            {/* ICON */}
+
+            <span
+              className="
+                grid
+                h-10
+                w-10
+                shrink-0
+                place-items-center
+                rounded-xl
+                bg-[#ffe3de]
+                text-[#b42318]
+                transition
+                group-hover:bg-[#ffd9d2]
+              "
+            >
+              <DeleteIcon />
+            </span>
+
+            {/* TEXT */}
+
+            <span className="min-w-0 flex-1">
+              <strong
+                className="
+                  block
+                  text-[12px]
+                  font-bold
+                  sm:text-[13px]
+                "
+              >
+                Delete Account
+              </strong>
+
+              <span
+                className="
+                  mt-[2px]
+                  block
+                  text-[9px]
+                  text-[#a66d67]
+                "
+              >
+                Permanently delete your account
+              </span>
+            </span>
+
+            {/* ARROW */}
+
+            <span
+              className="
+                text-lg
+                transition-transform
+                group-hover:translate-x-[2px]
+              "
+            >
+              →
+            </span>
+          </button>
+        </section>
+
+        {/* =================================================
             FOOTER
         ================================================= */}
 
@@ -791,6 +873,17 @@ export default function SettingsPage() {
           </p>
         </div>
       </div>
+
+      {/* =================================================
+          DELETE ACCOUNT MODAL
+      ================================================= */}
+
+      {showDeleteAccount && (
+        <DeleteAccountModal
+          onClose={() => setShowDeleteAccount(false)}
+          onDrawerClose={() => router.back()}
+        />
+      )}
     </main>
   );
 }
@@ -799,9 +892,7 @@ export default function SettingsPage() {
    CURRENT LANGUAGE NAME
 ========================================================= */
 
-function getCurrentLanguageName(
-  language: LanguageCode
-) {
+function getCurrentLanguageName(language: LanguageCode) {
   switch (language) {
     case "hi":
       return "हिन्दी (Hindi)";
@@ -815,7 +906,7 @@ function getCurrentLanguageName(
 }
 
 /* =========================================================
-   ICONS
+   BACK ICON
 ========================================================= */
 
 function BackIcon() {
@@ -835,6 +926,10 @@ function BackIcon() {
   );
 }
 
+/* =========================================================
+   SETTINGS ICON
+========================================================= */
+
 function SettingsIcon() {
   return (
     <svg
@@ -853,6 +948,10 @@ function SettingsIcon() {
     </svg>
   );
 }
+
+/* =========================================================
+   LANGUAGE ICON
+========================================================= */
 
 function LanguageIcon() {
   return (
@@ -877,6 +976,10 @@ function LanguageIcon() {
   );
 }
 
+/* =========================================================
+   GLOBE ICON
+========================================================= */
+
 function GlobeIcon() {
   return (
     <svg
@@ -900,6 +1003,10 @@ function GlobeIcon() {
   );
 }
 
+/* =========================================================
+   CHECK ICON
+========================================================= */
+
 function CheckIcon() {
   return (
     <svg
@@ -916,6 +1023,10 @@ function CheckIcon() {
     </svg>
   );
 }
+
+/* =========================================================
+   INFO ICON
+========================================================= */
 
 function InfoIcon() {
   return (
@@ -937,3 +1048,33 @@ function InfoIcon() {
     </svg>
   );
 }
+
+/* =========================================================
+   DELETE ICON
+========================================================= */
+
+function DeleteIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-[19px] w-[19px]"
+      aria-hidden="true"
+    >
+      <path d="M3 6h18" />
+
+      <path d="M8 6V4h8v2" />
+
+      <path d="M19 6l-1 14H6L5 6" />
+
+      <path d="M10 11v5" />
+
+      <path d="M14 11v5" />
+    </svg>
+  );
+}
+

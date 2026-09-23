@@ -264,10 +264,7 @@ export default function EditProfilePage() {
               {profile.name || "Your Name"}
             </h2>
 
-            {/* DESCRIPTION */}
-            <p className="mt-1 text-sm text-white/70">
-              Update your personal information
-            </p>
+           
           </div>
 
           {/* FORM */}

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -5,8 +6,6 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { useLanguage } from "../../lib/LanguageProvider";
 import type { TranslationKey } from "../../lib/i18n";
-
-import DeleteAccountModal from "./DeleteAccountModal";
 
 type Props = {
   onClose: () => void;
@@ -20,7 +19,6 @@ type IconName =
   | "settings"
   | "help"
   | "logout"
-  | "delete"
   | "edit";
 
 type MenuItem = {
@@ -45,8 +43,8 @@ type ProfileData = {
 const PROFILE_STORAGE_KEY = "profile-data";
 
 const defaultProfile: ProfileData = {
-  name: "Krishna Sharma",
-  phone: "+91 8080232328",
+  name: "",
+  phone: "",
   email: "",
   city: "",
   image: "",
@@ -106,8 +104,6 @@ export default function ProfileDrawer({ onClose }: Props) {
 
   const { t } = useLanguage();
 
-  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
-
   const [profile, setProfile] = useState<ProfileData>(defaultProfile);
 
   // =========================================================
@@ -123,7 +119,9 @@ export default function ProfileDrawer({ onClose }: Props) {
         return;
       }
 
-      const parsedProfile = JSON.parse(savedProfile) as Partial<ProfileData>;
+      const parsedProfile = JSON.parse(
+        savedProfile
+      ) as Partial<ProfileData>;
 
       setProfile({
         ...defaultProfile,
@@ -146,7 +144,7 @@ export default function ProfileDrawer({ onClose }: Props) {
     document.body.style.overflow = "hidden";
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !showDeleteAccount) {
+      if (event.key === "Escape") {
         onClose();
       }
     };
@@ -158,7 +156,7 @@ export default function ProfileDrawer({ onClose }: Props) {
 
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [onClose, showDeleteAccount]);
+  }, [onClose]);
 
   // =========================================================
   // ACTIVE ROUTE
@@ -203,18 +201,6 @@ export default function ProfileDrawer({ onClose }: Props) {
     onClose();
 
     router.replace("/login");
-  };
-
-  // =========================================================
-  // DELETE ACCOUNT
-  // =========================================================
-
-  const openDeleteAccount = () => {
-    setShowDeleteAccount(true);
-  };
-
-  const closeDeleteAccount = () => {
-    setShowDeleteAccount(false);
   };
 
   // =========================================================
@@ -427,7 +413,6 @@ export default function ProfileDrawer({ onClose }: Props) {
                     </div>
                   )}
                 </div>
-
               </div>
 
               {/* =================================================
@@ -532,14 +517,14 @@ export default function ProfileDrawer({ onClose }: Props) {
 
                 <p
                   className="
-                      mb-2
-                      px-3
-                      text-[9px]
-                      font-bold
-                      uppercase
-                      tracking-[0.13em]
-                      text-[#a08d7b]
-                    "
+                    mb-2
+                    px-3
+                    text-[9px]
+                    font-bold
+                    uppercase
+                    tracking-[0.13em]
+                    text-[#a08d7b]
+                  "
                 >
                   {section.title}
                 </p>
@@ -548,13 +533,13 @@ export default function ProfileDrawer({ onClose }: Props) {
 
                 <div
                   className="
-                      overflow-hidden
-                      rounded-[16px]
-                      border
-                      border-[#eadfce]
-                      bg-[#fffdf9]
-                      shadow-[0_4px_16px_rgba(74,42,16,0.035)]
-                    "
+                    overflow-hidden
+                    rounded-[16px]
+                    border
+                    border-[#eadfce]
+                    bg-[#fffdf9]
+                    shadow-[0_4px_16px_rgba(74,42,16,0.035)]
+                  "
                 >
                   {section.items.map((item, index) => {
                     const active = isActive(item.route);
@@ -565,44 +550,44 @@ export default function ProfileDrawer({ onClose }: Props) {
                         type="button"
                         onClick={() => navigateTo(item.route)}
                         className={`
-                              group
-                              relative
-                              flex
-                              min-h-[58px]
-                              w-full
-                              items-center
-                              gap-3
-                              px-3
-                              text-left
-                              transition-all
-                              duration-200
+                          group
+                          relative
+                          flex
+                          min-h-[58px]
+                          w-full
+                          items-center
+                          gap-3
+                          px-3
+                          text-left
+                          transition-all
+                          duration-200
 
-                              ${
-                                index !== section.items.length - 1
-                                  ? "border-b border-[#f0e5d6]"
-                                  : ""
-                              }
+                          ${
+                            index !== section.items.length - 1
+                              ? "border-b border-[#f0e5d6]"
+                              : ""
+                          }
 
-                              ${
-                                active
-                                  ? "bg-[#fff1df] text-[#a71919]"
-                                  : "bg-transparent text-[#4d433a] hover:bg-[#fff7eb]"
-                              }
-                            `}
+                          ${
+                            active
+                              ? "bg-[#fff1df] text-[#a71919]"
+                              : "bg-transparent text-[#4d433a] hover:bg-[#fff7eb]"
+                          }
+                        `}
                       >
                         {/* ACTIVE INDICATOR */}
 
                         {active && (
                           <span
                             className="
-                                  absolute
-                                  bottom-[12px]
-                                  left-0
-                                  top-[12px]
-                                  w-[3px]
-                                  rounded-r-full
-                                  bg-[#a71919]
-                                "
+                              absolute
+                              bottom-[12px]
+                              left-0
+                              top-[12px]
+                              w-[3px]
+                              rounded-r-full
+                              bg-[#a71919]
+                            "
                           />
                         )}
 
@@ -610,21 +595,21 @@ export default function ProfileDrawer({ onClose }: Props) {
 
                         <span
                           className={`
-                                grid
-                                h-10
-                                w-10
-                                shrink-0
-                                place-items-center
-                                rounded-xl
-                                transition-all
-                                duration-200
+                            grid
+                            h-10
+                            w-10
+                            shrink-0
+                            place-items-center
+                            rounded-xl
+                            transition-all
+                            duration-200
 
-                                ${
-                                  active
-                                    ? "bg-[#a71919] text-white shadow-[0_5px_12px_rgba(167,25,25,0.18)]"
-                                    : "bg-[#fff1dc] text-[#b24a20] group-hover:bg-[#fbe4c4]"
-                                }
-                              `}
+                            ${
+                              active
+                                ? "bg-[#a71919] text-white shadow-[0_5px_12px_rgba(167,25,25,0.18)]"
+                                : "bg-[#fff1dc] text-[#b24a20] group-hover:bg-[#fbe4c4]"
+                            }
+                          `}
                         >
                           <MenuIcon name={item.icon} />
                         </span>
@@ -634,25 +619,25 @@ export default function ProfileDrawer({ onClose }: Props) {
                         <span className="min-w-0 flex-1">
                           <strong
                             className={`
-                                  block
-                                  truncate
-                                  text-[12px]
-                                  sm:text-[13px]
+                              block
+                              truncate
+                              text-[12px]
+                              sm:text-[13px]
 
-                                  ${active ? "font-bold" : "font-semibold"}
-                                `}
+                              ${active ? "font-bold" : "font-semibold"}
+                            `}
                           >
                             {t(item.key)}
                           </strong>
 
                           <span
                             className="
-                                  mt-[2px]
-                                  hidden
-                                  text-[9px]
-                                  text-[#a09286]
-                                  sm:block
-                                "
+                              mt-[2px]
+                              hidden
+                              text-[9px]
+                              text-[#a09286]
+                              sm:block
+                            "
                           >
                             {getDescription(item.icon)}
                           </span>
@@ -662,15 +647,15 @@ export default function ProfileDrawer({ onClose }: Props) {
 
                         <span
                           className={`
-                                text-[20px]
-                                font-light
-                                leading-none
-                                transition-transform
-                                duration-200
-                                group-hover:translate-x-[2px]
+                            text-[20px]
+                            font-light
+                            leading-none
+                            transition-transform
+                            duration-200
+                            group-hover:translate-x-[2px]
 
-                                ${active ? "text-[#a71919]" : "text-[#c0b1a0]"}
-                              `}
+                            ${active ? "text-[#a71919]" : "text-[#c0b1a0]"}
+                          `}
                         >
                           ›
                         </span>
@@ -767,83 +752,6 @@ export default function ProfileDrawer({ onClose }: Props) {
                 </span>
               </button>
             </section>
-
-            {/* =================================================
-                DELETE ACCOUNT
-            ================================================= */}
-
-            <section className="mt-3">
-              <button
-                type="button"
-                onClick={openDeleteAccount}
-                className="
-                  group
-                  flex
-                  min-h-[56px]
-                  w-full
-                  items-center
-                  gap-3
-                  rounded-[14px]
-                  border
-                  border-[#efc7c1]
-                  bg-[#fff3f1]
-                  px-3
-                  text-left
-                  text-[#b42318]
-                  transition-all
-                  hover:border-[#dfa69e]
-                  hover:bg-[#ffe9e5]
-                  active:scale-[0.99]
-                "
-              >
-                {/* ICON */}
-
-                <span
-                  className="
-                    grid
-                    h-10
-                    w-10
-                    shrink-0
-                    place-items-center
-                    rounded-xl
-                    bg-[#ffe3de]
-                    text-[#b42318]
-                  "
-                >
-                  <MenuIcon name="delete" />
-                </span>
-
-                {/* TEXT */}
-
-                <span className="min-w-0 flex-1">
-                  <strong
-                    className="
-                      block
-                      text-[12px]
-                      font-bold
-                      sm:text-[13px]
-                    "
-                  >
-                    Delete Account
-                  </strong>
-
-                  <span
-                    className="
-                      mt-[2px]
-                      block
-                      text-[9px]
-                      text-[#a66d67]
-                    "
-                  >
-                    Permanently delete your account
-                  </span>
-                </span>
-
-                {/* ARROW */}
-
-                <span className="text-lg">→</span>
-              </button>
-            </section>
           </div>
 
           {/* =================================================
@@ -897,17 +805,6 @@ export default function ProfileDrawer({ onClose }: Props) {
           </footer>
         </aside>
       </div>
-
-      {/* =====================================================
-          DELETE ACCOUNT MODAL
-      ===================================================== */}
-
-      {showDeleteAccount && (
-        <DeleteAccountModal
-          onClose={closeDeleteAccount}
-          onDrawerClose={onClose}
-        />
-      )}
     </>
   );
 }
@@ -1108,34 +1005,6 @@ function MenuIcon({ name }: { name: IconName }) {
         <path d="M12 20h9" />
 
         <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" />
-      </svg>
-    );
-  }
-
-  // =======================================================
-  // DELETE
-  // =======================================================
-
-  if (name === "delete") {
-    return (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={common}
-      >
-        <path d="M3 6h18" />
-
-        <path d="M8 6V4h8v2" />
-
-        <path d="M19 6l-1 14H6L5 6" />
-
-        <path d="M10 11v5" />
-
-        <path d="M14 11v5" />
       </svg>
     );
   }
