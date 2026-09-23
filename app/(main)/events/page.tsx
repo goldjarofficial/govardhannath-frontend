@@ -1,8 +1,6 @@
 "use client";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
 import { useLanguage } from "../../lib/LanguageProvider";
 import type { TranslationKey } from "../../lib/i18n";
 
@@ -42,1454 +40,370 @@ const events: EventItem[] = [
   },
 ];
 
+const tabClass =
+  "h-9 rounded-lg border-0 text-xs font-bold transition-all " +
+  "sm:h-[42px] sm:text-sm";
+
+const activeTabClass =
+  "bg-[#a71919] text-white shadow-[0_4px_12px_rgba(167,25,25,0.15)]";
+
+const eventCardClass =
+  "group flex w-full min-h-[86px] items-center gap-[11px] rounded-[10px] " +
+  "border border-[#eee0cc] bg-[#fffdf9] p-2 text-left text-[#4b4039] " +
+  "shadow-[0_4px_14px_rgba(79,43,14,0.04)] transition-all " +
+  "sm:min-h-[100px] sm:gap-[13px] sm:p-2.5 " +
+  "md:min-h-[120px] md:gap-[17px] md:rounded-[15px] md:p-[13px] " +
+  "lg:min-h-[165px] lg:gap-[18px] lg:rounded-[17px] lg:p-4 " +
+  "lg:hover:-translate-y-[3px] lg:hover:border-[#d7b97f] " +
+  "lg:hover:shadow-[0_12px_30px_rgba(79,43,14,0.09)] " +
+  "min-[1440px]:min-h-[350px] min-[1440px]:flex-col " +
+  "min-[1440px]:items-stretch min-[1440px]:gap-[14px] min-[1440px]:p-[14px]";
+
+const imageClass =
+  "h-[70px] w-[72px] shrink-0 overflow-hidden rounded-lg bg-[#f4e5c8] " +
+  "sm:h-20 sm:w-[82px] sm:rounded-[10px] " +
+  "md:h-[94px] md:w-[105px] md:rounded-xl " +
+  "lg:h-[130px] lg:w-[145px] lg:rounded-[13px] " +
+  "min-[1440px]:h-[205px] min-[1440px]:w-full min-[1440px]:rounded-[14px]";
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return <h2 className="font-serif text-[#641010]">{children}</h2>;
+}
+
+function EventCard({
+  event,
+  onClick,
+  t,
+}: {
+  event: EventItem;
+  onClick: () => void;
+  t: (key: TranslationKey) => string;
+}) {
+  return (
+    <button type="button" onClick={onClick} className={eventCardClass}>
+      <div className={imageClass}>
+        <img
+          src={event.image}
+          alt={t(event.titleKey)}
+          className="block h-full w-full object-cover"
+        />
+      </div>
+
+      <div className="min-w-0 flex-1 min-[1440px]:px-1 min-[1440px]:pt-[3px]">
+        <span
+          className="
+            mb-1 hidden text-[9px] font-bold uppercase
+            tracking-[1px] text-[#c99435]
+            md:block
+            lg:text-[10px]
+          "
+        >
+          Upcoming Event
+        </span>
+
+        <SectionTitle>
+          <span
+            className="
+              block text-sm leading-tight
+              sm:text-base
+              md:text-xl
+              lg:text-[21px]
+              min-[1440px]:text-[22px]
+            "
+          >
+            {t(event.titleKey)}
+          </span>
+        </SectionTitle>
+
+        <p
+          className="
+            mt-1 text-[10px] text-[#8a8077]
+            sm:text-[11px]
+            md:mt-[7px] md:text-xs
+            min-[1440px]:text-[13px]
+          "
+        >
+          {t(event.dateKey)}
+        </p>
+      </div>
+
+      <span
+        className="
+          inline-flex shrink-0 items-center justify-center gap-1
+          rounded-md bg-[#fff0df] px-[9px] py-[7px]
+          text-[10px] font-bold text-[#a71919] whitespace-nowrap
+          sm:px-2.5 sm:py-2 sm:text-[11px]
+          md:rounded-lg md:px-3 md:py-[9px] md:text-xs
+          min-[1440px]:ml-auto min-[1440px]:mr-1 min-[1440px]:mt-auto
+          min-[1440px]:mb-[3px] min-[1440px]:w-fit
+        "
+      >
+        {t("view")}
+        <b className="text-[15px] leading-none">›</b>
+      </span>
+    </button>
+  );
+}
+
+function EmptyEvents({ t }: { t: (key: TranslationKey) => string }) {
+  return (
+    <div
+      className="
+        rounded-[14px] border border-[#eadbc5] bg-[#fffdf8]
+        px-[15px] py-[45px] text-center text-[#8a8077]
+        md:rounded-[18px] md:px-[30px] md:py-[70px]
+        lg:col-span-full lg:flex lg:min-h-[320px]
+        lg:flex-col lg:items-center lg:justify-center
+        lg:rounded-[20px] lg:p-10
+      "
+    >
+      <div
+        className="
+          mx-auto mb-3 grid h-[58px] w-[58px] place-items-center
+          rounded-full border border-[#e5cfaa] bg-[#fff8eb] text-[27px]
+          lg:mb-4 lg:h-[78px] lg:w-[78px] lg:text-4xl
+        "
+      >
+        🛕
+      </div>
+
+      <h2
+        className="
+          font-serif text-lg text-[#641010]
+          lg:text-2xl
+        "
+      >
+        {t("past")}
+      </h2>
+
+      <p className="mt-[7px] text-xs lg:text-[13px]">{t("noPastEvents")}</p>
+    </div>
+  );
+}
+
+function Decoration() {
+  return (
+    <div
+      className="
+        mt-6 flex items-center justify-center gap-1.5 text-[#c99435]
+        lg:mt-[38px]
+      "
+    >
+      <span
+        className="
+          h-px w-12
+          bg-gradient-to-r from-transparent to-[#d8b66c]
+          lg:w-[100px]
+        "
+      />
+
+      <b className="text-[13px] font-normal">❧</b>
+      <b className="text-[13px] font-normal">❧</b>
+      <b className="text-[13px] font-normal">❧</b>
+
+      <span
+        className="
+          h-px w-12
+          bg-gradient-to-l from-transparent to-[#d8b66c]
+          lg:w-[100px]
+        "
+      />
+    </div>
+  );
+}
+
 export default function Events() {
   const router = useRouter();
   const { t } = useLanguage();
 
-  const [tab, setTab] =
-    useState<EventTab>("upcoming");
+  const [tab, setTab] = useState<EventTab>("upcoming");
 
   return (
-    <main className="eventsScreen">
+    <main
+      className="
+        min-h-dvh w-full pb-[calc(30px+env(safe-area-inset-bottom))]
+        bg-[radial-gradient(circle_at_50%_-10%,#fffef9_0,#fffaf0_42%,#f6ead5_100%)]
+        text-[#4b4039]
+        lg:min-h-screen lg:bg-[radial-gradient(circle_at_top_right,rgba(201,148,53,0.12),transparent_30%),#fff9ed]
+        lg:px-10 lg:pb-[55px]
+      "
+    >
       {/* HEADER */}
-
-      <header className="eventsHeader">
+      <header
+        className="
+          relative flex h-[72px] items-center justify-between
+          border-b border-[#eadbc5] bg-[rgba(255,253,248,0.98)] px-[15px]
+          min-[360px]:max-[599px]:h-[78px]
+          md:h-[82px] md:px-7
+          lg:-mx-10 lg:h-[84px] lg:justify-start lg:gap-[18px] lg:px-[42px]
+        "
+      >
         <button
           type="button"
-          className="eventsBack"
           onClick={() => router.back()}
           aria-label={t("back")}
+          className="
+            grid h-[38px] w-[38px] shrink-0 place-items-center
+            rounded-full border border-[#eadbc5] bg-[#fffdf8]
+            text-[29px] leading-none text-[#a71919]
+            shadow-[0_3px_10px_rgba(70,40,10,0.05)]
+            md:h-[42px] md:w-[42px]
+            lg:h-11 lg:w-11 lg:text-[31px]
+          "
         >
           ‹
         </button>
 
-        <div className="headerContent">
-          <span className="headerEyebrow">
+        <div
+          className="
+            flex-1 text-center
+            lg:flex-none lg:text-left
+          "
+        >
+          <span
+            className="
+              mb-0.5 hidden text-[10px] font-bold uppercase
+              tracking-[1.3px] text-[#9a762f]
+              lg:block
+            "
+          >
             Shri Govardhannath Haveli
           </span>
 
-          <h1>{t("events")}</h1>
+          <h1
+            className="
+              m-0 font-serif text-[23px] text-[#641010]
+              min-[360px]:text-[25px]
+              md:text-[28px]
+              lg:text-[26px]
+            "
+          >
+            {t("events")}
+          </h1>
         </div>
 
-        <div className="headerSpace" />
+        <div
+          className="
+            h-[38px] w-[38px] shrink-0
+            md:h-[42px] md:w-[42px]
+            lg:hidden
+          "
+        />
       </header>
 
       {/* DESKTOP HERO */}
-
-      <section className="desktopHero">
+      <section
+        className="
+          mx-auto mt-[30px] hidden min-h-[150px] w-full max-w-[1320px]
+          items-center justify-between gap-[30px]
+          rounded-[22px] border border-[#eadbc5]
+          bg-gradient-to-br from-[#fffdf8] to-[#fff3df]
+          px-[34px] py-7
+          shadow-[0_10px_30px_rgba(80,45,15,0.06)]
+          lg:flex
+          min-[1440px]:min-h-[160px] min-[1440px]:max-w-[1420px]
+          min-[1440px]:px-10 min-[1440px]:py-8
+        "
+      >
         <div>
-          <span>
+          <span
+            className="
+              mb-[7px] block text-[11px] font-bold uppercase
+              tracking-[1.4px] text-[#c99435]
+            "
+          >
             Haveli Utsav
           </span>
 
-          <h2>
+          <h2
+            className="
+              m-0 font-serif text-[35px] text-[#641010]
+              min-[1440px]:text-[39px]
+            "
+          >
             {t("events")}
           </h2>
 
-          <p>
-            Stay connected with upcoming utsavs,
-            satsang and sacred celebrations.
+          <p className="mt-[9px] max-w-[520px] text-sm leading-[1.5] text-[#776d65]">
+            Stay connected with upcoming utsavs, satsang and sacred
+            celebrations.
           </p>
         </div>
 
-        <div className="heroIcon">
+        <div
+          className="
+            grid h-[86px] w-[86px] shrink-0 place-items-center
+            rounded-full border border-[#dec182] bg-[#fffdf8]
+            text-[42px]
+            shadow-[0_8px_22px_rgba(96,57,18,0.08)]
+            min-[1440px]:h-[94px] min-[1440px]:w-[94px]
+            min-[1440px]:text-[46px]
+          "
+        >
           🛕
         </div>
       </section>
 
       {/* TABS */}
-
-      <div className="tabs">
-        <button
-          type="button"
-          className={
-            tab === "upcoming"
-              ? "activeTab"
-              : ""
-          }
-          onClick={() =>
-            setTab("upcoming")
-          }
-        >
-          {t("upcoming")}
-        </button>
-
-        <button
-          type="button"
-          className={
-            tab === "past"
-              ? "activeTab"
-              : ""
-          }
-          onClick={() =>
-            setTab("past")
-          }
-        >
-          {t("past")}
-        </button>
+      <div
+        className="
+          mx-[15px] my-[14px] grid grid-cols-2 gap-2
+          rounded-[10px] border border-[#eadbc5] bg-[#fffdf8] p-0.5
+          shadow-[0_4px_14px_rgba(82,48,18,0.04)]
+          min-[360px]:max-[599px]:mx-5
+          min-[360px]:max-[599px]:my-[17px_20px_14px]
+          md:mx-auto md:my-[22px_0_18px] md:w-[calc(100%-48px)]
+          md:max-w-[760px] md:rounded-xl md:p-[3px]
+          lg:my-[26px_0_24px] lg:w-full lg:max-w-[520px]
+        "
+      >
+        {(["upcoming", "past"] as EventTab[]).map((item) => (
+          <button
+            key={item}
+            type="button"
+            onClick={() => setTab(item)}
+            className={`
+              ${tabClass}
+              ${
+                tab === item
+                  ? activeTabClass
+                  : "bg-transparent text-[#776d65] lg:hover:bg-[#fff1e7] lg:hover:text-[#a71919]"
+              }
+            `}
+          >
+            {t(item)}
+          </button>
+        ))}
       </div>
 
       {/* EVENTS */}
-
-      <section className="eventList">
+      <section
+        className="
+          flex flex-col gap-[9px] px-[15px]
+          min-[360px]:max-[599px]:gap-[11px] min-[360px]:max-[599px]:px-5
+          md:mx-auto md:w-[calc(100%-48px)] md:max-w-[760px]
+          md:gap-[13px] md:p-0
+          lg:grid lg:w-full lg:max-w-[1320px]
+          lg:grid-cols-2 lg:gap-5
+          min-[1440px]:max-w-[1420px]
+          min-[1440px]:grid-cols-3 min-[1440px]:gap-[22px]
+        "
+      >
         {tab === "upcoming" ? (
           events.map((event) => (
-            <button
-              type="button"
+            <EventCard
               key={event.id}
-              className="eventCard"
-              onClick={() =>
-                router.push(
-                  `/events/${event.id}`
-                )
-              }
-            >
-              <div className="eventImageWrap">
-                <img
-                  src={event.image}
-                  alt={t(event.titleKey)}
-                />
-              </div>
-
-              <div className="eventInfo">
-                <span className="eventLabel">
-                  Upcoming Event
-                </span>
-
-                <h2>
-                  {t(event.titleKey)}
-                </h2>
-
-                <p>
-                  {t(event.dateKey)}
-                </p>
-              </div>
-
-              <span className="view">
-                {t("view")}
-                <b>›</b>
-              </span>
-            </button>
+              event={event}
+              t={t}
+              onClick={() => router.push(`/events/${event.id}`)}
+            />
           ))
         ) : (
-          <div className="empty">
-            <div className="emptyIcon">
-              🛕
-            </div>
-
-            <h2>
-              {t("past")}
-            </h2>
-
-            <p>
-              {t("noPastEvents")}
-            </p>
-          </div>
+          <EmptyEvents t={t} />
         )}
       </section>
 
-      {/* DECORATION */}
-
-      <div className="eventsDecoration">
-        <span />
-        <b>❧</b>
-        <b>❧</b>
-        <b>❧</b>
-        <span />
-      </div>
-
-      <style jsx global>{`
-        /* ==========================================
-           PAGE
-        ========================================== */
-
-        .eventsScreen {
-          width: 100%;
-
-          min-height: 100dvh;
-
-          padding-bottom:
-            calc(
-              30px +
-              env(
-                safe-area-inset-bottom
-              )
-            );
-
-          background:
-            radial-gradient(
-              circle at 50% -10%,
-              #fffef9 0,
-              #fffaf0 42%,
-              #f6ead5 100%
-            );
-
-          color:
-            #4b4039;
-        }
-
-        .desktopHero {
-          display: none;
-        }
-
-        /* ==========================================
-           HEADER
-        ========================================== */
-
-        .eventsHeader {
-          position: relative;
-
-          height: 72px;
-
-          display: flex;
-
-          align-items: center;
-
-          justify-content:
-            space-between;
-
-          padding:
-            0 15px;
-
-          border-bottom:
-            1px solid
-            #eadbc5;
-
-          background:
-            rgba(
-              255,
-              253,
-              248,
-              0.98
-            );
-        }
-
-        .eventsBack {
-          width: 38px;
-          height: 38px;
-
-          display: grid;
-
-          place-items: center;
-
-          flex-shrink: 0;
-
-          padding: 0;
-
-          border:
-            1px solid
-            #eadbc5;
-
-          border-radius:
-            50%;
-
-          background:
-            #fffdf8;
-
-          color:
-            #a71919;
-
-          font-size: 29px;
-
-          line-height: 1;
-
-          box-shadow:
-            0 3px 10px
-            rgba(
-              70,
-              40,
-              10,
-              0.05
-            );
-        }
-
-        .headerContent {
-          flex: 1;
-
-          text-align:
-            center;
-        }
-
-        .headerEyebrow {
-          display: none;
-        }
-
-        .eventsHeader h1 {
-          margin: 0;
-
-          color:
-            #641010;
-
-          font-family:
-            Georgia,
-            "Times New Roman",
-            serif;
-
-          font-size: 23px;
-        }
-
-        .headerSpace {
-          width: 38px;
-
-          flex-shrink: 0;
-        }
-
-        /* ==========================================
-           TABS
-        ========================================== */
-
-        .tabs {
-          display: grid;
-
-          grid-template-columns:
-            repeat(
-              2,
-              minmax(0, 1fr)
-            );
-
-          gap: 8px;
-
-          margin:
-            14px 15px 12px;
-
-          padding: 2px;
-
-          border:
-            1px solid
-            #eadbc5;
-
-          border-radius:
-            10px;
-
-          background:
-            #fffdf8;
-
-          box-shadow:
-            0 4px 14px
-            rgba(
-              82,
-              48,
-              18,
-              0.04
-            );
-        }
-
-        .tabs button {
-          height: 38px;
-
-          border: 0;
-
-          border-radius:
-            8px;
-
-          background:
-            transparent;
-
-          color:
-            #776d65;
-
-          font-size: 12px;
-
-          font-weight: 700;
-
-          transition:
-            background
-              0.18s ease,
-            color
-              0.18s ease,
-            transform
-              0.18s ease;
-        }
-
-        .tabs .activeTab {
-          background:
-            #a71919;
-
-          color: white;
-
-          box-shadow:
-            0 4px 12px
-            rgba(
-              167,
-              25,
-              25,
-              0.15
-            );
-        }
-
-        /* ==========================================
-           LIST
-        ========================================== */
-
-        .eventList {
-          display: flex;
-
-          flex-direction:
-            column;
-
-          gap: 9px;
-
-          padding:
-            0 15px;
-        }
-
-        /* ==========================================
-           EVENT CARD
-        ========================================== */
-
-        .eventCard {
-          width: 100%;
-
-          min-height: 86px;
-
-          display: flex;
-
-          align-items:
-            center;
-
-          gap: 11px;
-
-          padding: 8px;
-
-          border:
-            1px solid
-            #eee0cc;
-
-          border-radius:
-            10px;
-
-          background:
-            #fffdf9;
-
-          color:
-            inherit;
-
-          text-align: left;
-
-          box-shadow:
-            0 4px 14px
-            rgba(
-              79,
-              43,
-              14,
-              0.04
-            );
-
-          transition:
-            transform
-              0.18s ease,
-            box-shadow
-              0.18s ease,
-            border-color
-              0.18s ease;
-        }
-
-        .eventImageWrap {
-          width: 72px;
-          height: 70px;
-
-          flex-shrink: 0;
-
-          overflow: hidden;
-
-          border-radius:
-            8px;
-
-          background:
-            #f4e5c8;
-        }
-
-        .eventImageWrap img {
-          width: 100%;
-          height: 100%;
-
-          display: block;
-
-          object-fit: cover;
-        }
-
-        .eventInfo {
-          flex: 1;
-
-          min-width: 0;
-        }
-
-        .eventLabel {
-          display: none;
-        }
-
-        .eventInfo h2 {
-          margin:
-            0 0 5px;
-
-          color:
-            #332820;
-
-          font-family:
-            Georgia,
-            "Times New Roman",
-            serif;
-
-          font-size: 14px;
-
-          line-height: 1.25;
-        }
-
-        .eventInfo p {
-          margin: 0;
-
-          color:
-            #8a8077;
-
-          font-size: 10px;
-        }
-
-        .view {
-          display:
-            inline-flex;
-
-          align-items:
-            center;
-
-          justify-content:
-            center;
-
-          gap: 4px;
-
-          padding:
-            7px 9px;
-
-          border-radius:
-            6px;
-
-          background:
-            #fff0df;
-
-          color:
-            #a71919;
-
-          font-size: 10px;
-
-          font-weight: 700;
-
-          white-space:
-            nowrap;
-        }
-
-        .view b {
-          font-size: 15px;
-
-          line-height: 1;
-        }
-
-        /* ==========================================
-           EMPTY
-        ========================================== */
-
-        .empty {
-          padding:
-            45px 15px;
-
-          border:
-            1px solid
-            #eadbc5;
-
-          border-radius:
-            14px;
-
-          background:
-            #fffdf8;
-
-          text-align:
-            center;
-
-          color:
-            #8a8077;
-        }
-
-        .emptyIcon {
-          width: 58px;
-          height: 58px;
-
-          display: grid;
-
-          place-items:
-            center;
-
-          margin:
-            0 auto 12px;
-
-          border:
-            1px solid
-            #e5cfaa;
-
-          border-radius:
-            50%;
-
-          background:
-            #fff8eb;
-
-          font-size: 27px;
-        }
-
-        .empty h2 {
-          margin: 0;
-
-          color:
-            #641010;
-
-          font-family:
-            Georgia,
-            "Times New Roman",
-            serif;
-
-          font-size: 18px;
-        }
-
-        .empty p {
-          margin:
-            7px 0 0;
-
-          font-size: 12px;
-        }
-
-        /* ==========================================
-           DECORATION
-        ========================================== */
-
-        .eventsDecoration {
-          display: flex;
-
-          align-items:
-            center;
-
-          justify-content:
-            center;
-
-          gap: 6px;
-
-          margin-top:
-            24px;
-
-          color:
-            #c99435;
-        }
-
-        .eventsDecoration span {
-          width: 48px;
-          height: 1px;
-
-          background:
-            linear-gradient(
-              to right,
-              transparent,
-              #d8b66c
-            );
-        }
-
-        .eventsDecoration
-          span:last-child {
-          background:
-            linear-gradient(
-              to left,
-              transparent,
-              #d8b66c
-            );
-        }
-
-        .eventsDecoration b {
-          font-size: 13px;
-
-          font-weight: 400;
-        }
-
-        /* ==========================================
-           SMALL MOBILE
-        ========================================== */
-
-        @media (
-          max-width: 359px
-        ) {
-          .eventsHeader {
-            height: 64px;
-
-            padding:
-              0 10px;
-          }
-
-          .eventsBack {
-            width: 34px;
-            height: 34px;
-
-            font-size: 26px;
-          }
-
-          .headerSpace {
-            width: 34px;
-          }
-
-          .eventsHeader h1 {
-            font-size: 20px;
-          }
-
-          .tabs {
-            margin:
-              12px 10px 10px;
-
-            gap: 6px;
-          }
-
-          .eventList {
-            gap: 7px;
-
-            padding:
-              0 10px;
-          }
-
-          .eventCard {
-            min-height: 78px;
-
-            gap: 8px;
-
-            padding: 7px;
-          }
-
-          .eventImageWrap {
-            width: 61px;
-            height: 61px;
-          }
-
-          .eventInfo h2 {
-            font-size: 12px;
-          }
-
-          .eventInfo p {
-            font-size: 9px;
-          }
-
-          .view {
-            padding:
-              6px 7px;
-
-            font-size: 9px;
-          }
-        }
-
-        /* ==========================================
-           LARGE MOBILE
-        ========================================== */
-
-        @media (
-          min-width: 430px
-        ) and (
-          max-width: 599px
-        ) {
-          .eventsHeader {
-            height: 78px;
-          }
-
-          .eventsHeader h1 {
-            font-size: 25px;
-          }
-
-          .tabs {
-            margin:
-              17px 20px 14px;
-          }
-
-          .tabs button {
-            height: 42px;
-
-            font-size: 13px;
-          }
-
-          .eventList {
-            gap: 11px;
-
-            padding:
-              0 20px;
-          }
-
-          .eventCard {
-            min-height: 100px;
-
-            gap: 13px;
-
-            padding: 10px;
-
-            border-radius:
-              12px;
-          }
-
-          .eventImageWrap {
-            width: 82px;
-            height: 80px;
-
-            border-radius:
-              10px;
-          }
-
-          .eventInfo h2 {
-            font-size: 16px;
-          }
-
-          .eventInfo p {
-            font-size: 11px;
-          }
-
-          .view {
-            padding:
-              8px 10px;
-
-            font-size: 11px;
-          }
-        }
-
-        /* ==========================================
-           TABLET
-        ========================================== */
-
-        @media (
-          min-width: 600px
-        ) and (
-          max-width: 1023px
-        ) {
-          .eventsScreen {
-            min-height:
-              100vh;
-          }
-
-          .eventsHeader {
-            height: 82px;
-
-            padding:
-              0 28px;
-          }
-
-          .eventsBack {
-            width: 42px;
-            height: 42px;
-          }
-
-          .headerSpace {
-            width: 42px;
-          }
-
-          .eventsHeader h1 {
-            font-size: 28px;
-          }
-
-          .tabs {
-            width:
-              min(
-                calc(
-                  100% - 48px
-                ),
-                760px
-              );
-
-            margin:
-              22px auto 18px;
-
-            padding: 3px;
-
-            border-radius:
-              12px;
-          }
-
-          .tabs button {
-            height: 45px;
-
-            font-size: 14px;
-          }
-
-          .eventList {
-            width:
-              min(
-                calc(
-                  100% - 48px
-                ),
-                760px
-              );
-
-            margin: 0 auto;
-
-            gap: 13px;
-
-            padding: 0;
-          }
-
-          .eventCard {
-            min-height: 120px;
-
-            gap: 17px;
-
-            padding: 13px;
-
-            border-radius:
-              15px;
-          }
-
-          .eventImageWrap {
-            width: 105px;
-            height: 94px;
-
-            border-radius:
-              12px;
-          }
-
-          .eventLabel {
-            display: block;
-
-            margin-bottom:
-              4px;
-
-            color:
-              #c99435;
-
-            font-size: 9px;
-
-            font-weight: 700;
-
-            letter-spacing:
-              1px;
-
-            text-transform:
-              uppercase;
-          }
-
-          .eventInfo h2 {
-            font-size: 20px;
-          }
-
-          .eventInfo p {
-            margin-top:
-              7px;
-
-            font-size: 12px;
-          }
-
-          .view {
-            padding:
-              9px 12px;
-
-            border-radius:
-              8px;
-
-            font-size: 12px;
-          }
-
-          .empty {
-            padding:
-              70px 30px;
-
-            border-radius:
-              18px;
-          }
-        }
-
-        /* ==========================================
-           DESKTOP WEBSITE
-        ========================================== */
-
-        @media (
-          min-width: 1024px
-        ) {
-          .eventsScreen {
-            min-height:
-              100vh;
-
-            padding:
-              0 40px 55px;
-
-            background:
-              radial-gradient(
-                circle at top right,
-                rgba(
-                  201,
-                  148,
-                  53,
-                  0.12
-                ),
-                transparent
-                  30%
-              ),
-              #fff9ed;
-          }
-
-          .eventsHeader {
-            height: 84px;
-
-            margin:
-              0 -40px;
-
-            justify-content:
-              flex-start;
-
-            gap: 18px;
-
-            padding:
-              0 42px;
-
-            background:
-              #fffdf8;
-          }
-
-          .eventsBack {
-            width: 44px;
-            height: 44px;
-
-            font-size: 31px;
-          }
-
-          .headerContent {
-            flex: none;
-
-            text-align: left;
-          }
-
-          .headerEyebrow {
-            display: block;
-
-            margin-bottom:
-              2px;
-
-            color:
-              #9a762f;
-
-            font-size: 10px;
-
-            font-weight: 700;
-
-            letter-spacing:
-              1.3px;
-
-            text-transform:
-              uppercase;
-          }
-
-          .eventsHeader h1 {
-            font-size: 26px;
-          }
-
-          .headerSpace {
-            display: none;
-          }
-
-          /* HERO */
-
-          .desktopHero {
-            width: 100%;
-
-            max-width:
-              1320px;
-
-            min-height:
-              150px;
-
-            display: flex;
-
-            align-items:
-              center;
-
-            justify-content:
-              space-between;
-
-            gap: 30px;
-
-            margin:
-              30px auto 0;
-
-            padding:
-              28px 34px;
-
-            border:
-              1px solid
-              #eadbc5;
-
-            border-radius:
-              22px;
-
-            background:
-              linear-gradient(
-                135deg,
-                #fffdf8,
-                #fff3df
-              );
-
-            box-shadow:
-              0 10px 30px
-              rgba(
-                80,
-                45,
-                15,
-                0.06
-              );
-          }
-
-          .desktopHero > div:first-child > span {
-            display: block;
-
-            margin-bottom:
-              7px;
-
-            color:
-              #c99435;
-
-            font-size: 11px;
-
-            font-weight: 700;
-
-            letter-spacing:
-              1.4px;
-
-            text-transform:
-              uppercase;
-          }
-
-          .desktopHero h2 {
-            margin: 0;
-
-            color:
-              #641010;
-
-            font-family:
-              Georgia,
-              "Times New Roman",
-              serif;
-
-            font-size: 35px;
-          }
-
-          .desktopHero p {
-            max-width:
-              520px;
-
-            margin:
-              9px 0 0;
-
-            color:
-              #776d65;
-
-            font-size: 14px;
-
-            line-height: 1.5;
-          }
-
-          .heroIcon {
-            width: 86px;
-            height: 86px;
-
-            display: grid;
-
-            place-items:
-              center;
-
-            flex-shrink: 0;
-
-            border:
-              1px solid
-              #dec182;
-
-            border-radius:
-              50%;
-
-            background:
-              #fffdf8;
-
-            font-size: 42px;
-
-            box-shadow:
-              0 8px 22px
-              rgba(
-                96,
-                57,
-                18,
-                0.08
-              );
-          }
-
-          /* TABS */
-
-          .tabs {
-            width:
-              min(
-                520px,
-                100%
-              );
-
-            margin:
-              26px auto 24px;
-
-            padding: 3px;
-
-            border-radius:
-              12px;
-          }
-
-          .tabs button {
-            height: 46px;
-
-            font-size: 14px;
-          }
-
-          .tabs button:hover {
-            background:
-              #fff1e7;
-
-            color:
-              #a71919;
-          }
-
-          .tabs .activeTab:hover {
-            background:
-              #a71919;
-
-            color: white;
-          }
-
-          /* EVENT GRID */
-
-          .eventList {
-            width: 100%;
-
-            max-width:
-              1320px;
-
-            display: grid;
-
-            grid-template-columns:
-              repeat(
-                2,
-                minmax(0, 1fr)
-              );
-
-            gap: 20px;
-
-            margin: 0 auto;
-
-            padding: 0;
-          }
-
-          .eventCard {
-            min-height:
-              165px;
-
-            gap: 18px;
-
-            padding: 16px;
-
-            border-radius:
-              17px;
-          }
-
-          .eventCard:hover {
-            transform:
-              translateY(-3px);
-
-            border-color:
-              #d7b97f;
-
-            box-shadow:
-              0 12px 30px
-              rgba(
-                79,
-                43,
-                14,
-                0.09
-              );
-          }
-
-          .eventImageWrap {
-            width: 145px;
-            height: 130px;
-
-            border-radius:
-              13px;
-          }
-
-          .eventLabel {
-            display: block;
-
-            margin-bottom:
-              6px;
-
-            color:
-              #c99435;
-
-            font-size: 10px;
-
-            font-weight: 700;
-
-            letter-spacing:
-              1px;
-
-            text-transform:
-              uppercase;
-          }
-
-          .eventInfo h2 {
-            font-size: 21px;
-          }
-
-          .eventInfo p {
-            margin-top:
-              8px;
-
-            font-size: 12px;
-          }
-
-          .view {
-            padding:
-              9px 12px;
-
-            border-radius:
-              8px;
-
-            font-size: 11px;
-          }
-
-          /* EMPTY DESKTOP */
-
-          .empty {
-            grid-column:
-              1 / -1;
-
-            min-height:
-              320px;
-
-            display: flex;
-
-            flex-direction:
-              column;
-
-            align-items:
-              center;
-
-            justify-content:
-              center;
-
-            padding:
-              40px;
-
-            border-radius:
-              20px;
-          }
-
-          .emptyIcon {
-            width: 78px;
-            height: 78px;
-
-            margin-bottom:
-              16px;
-
-            font-size: 36px;
-          }
-
-          .empty h2 {
-            font-size: 24px;
-          }
-
-          .empty p {
-            font-size: 13px;
-          }
-
-          .eventsDecoration {
-            margin-top:
-              38px;
-          }
-
-          .eventsDecoration span {
-            width: 100px;
-          }
-        }
-
-        /* ==========================================
-           LARGE DESKTOP
-        ========================================== */
-
-        @media (
-          min-width: 1440px
-        ) {
-          .desktopHero,
-          .eventList {
-            max-width:
-              1420px;
-          }
-
-          .desktopHero {
-            min-height:
-              160px;
-
-            padding:
-              32px 40px;
-          }
-
-          .desktopHero h2 {
-            font-size: 39px;
-          }
-
-          .heroIcon {
-            width: 94px;
-            height: 94px;
-
-            font-size: 46px;
-          }
-
-          .eventList {
-            grid-template-columns:
-              repeat(
-                3,
-                minmax(0, 1fr)
-              );
-
-            gap: 22px;
-          }
-
-          .eventCard {
-            min-height:
-              350px;
-
-            flex-direction:
-              column;
-
-            align-items:
-              stretch;
-
-            gap: 14px;
-
-            padding: 14px;
-          }
-
-          .eventImageWrap {
-            width: 100%;
-            height: 205px;
-
-            border-radius:
-              14px;
-          }
-
-          .eventInfo {
-            padding:
-              3px 4px 0;
-          }
-
-          .eventInfo h2 {
-            font-size: 22px;
-          }
-
-          .eventInfo p {
-            font-size: 13px;
-          }
-
-          .view {
-            width: fit-content;
-
-            margin:
-              auto 4px 3px;
-          }
-        }
-      `}</style>
+      <Decoration />
     </main>
   );
 }

@@ -6,51 +6,344 @@ export default function DonationFailed() {
   const router = useRouter();
 
   return (
-    <main className="failedScreen">
+    <main
+      className="
+        relative flex min-h-[100dvh] w-full items-center justify-center
+        overflow-hidden px-5 pt-5
+        pb-[calc(20px+env(safe-area-inset-bottom))]
+        text-[#4b4039]
+        bg-[radial-gradient(circle_at_50%_5%,#ffffff_0%,#fffaf0_42%,#f6ead5_100%)]
+        
+        max-[359px]:p-[14px]
+
+        min-[430px]:max-[599px]:p-7
+
+        min-[600px]:max-[1023px]:px-6
+        min-[600px]:max-[1023px]:py-[50px]
+
+        min-[1024px]:min-h-screen
+        min-[1024px]:px-10
+        min-[1024px]:py-[60px]
+        min-[1024px]:bg-[radial-gradient(circle_at_top_left,rgba(201,148,53,0.13),transparent_33%),radial-gradient(circle_at_bottom_right,rgba(167,25,25,0.08),transparent_30%),#fff9ed]
+      "
+    >
       {/* DECORATION */}
 
-      <div className="decoration decorationLeft" />
-      <div className="decoration decorationRight" />
+      <div
+        className="
+          pointer-events-none absolute
+          h-[100px] w-[100px]
+          rounded-full
+          border border-[#d5b66d]
+          opacity-[0.14]
+          left-[-50px] bottom-[30px]
+
+          min-[1024px]:h-[180px]
+          min-[1024px]:w-[180px]
+          min-[1024px]:left-[-70px]
+          min-[1024px]:bottom-[55px]
+          min-[1024px]:opacity-10
+        "
+      />
+
+      <div
+        className="
+          pointer-events-none absolute
+          h-[100px] w-[100px]
+          rounded-full
+          border border-[#d5b66d]
+          opacity-[0.14]
+          top-[35px] right-[-50px]
+
+          min-[1024px]:h-[180px]
+          min-[1024px]:w-[180px]
+          min-[1024px]:top-[55px]
+          min-[1024px]:right-[-70px]
+          min-[1024px]:opacity-10
+        "
+      />
 
       {/* CARD */}
 
-      <section className="failedCard">
+      <section
+        className="
+          relative z-[2]
+          w-full max-w-[390px]
+          rounded-2xl
+          border border-[#eadbc5]
+          bg-[#fffdf8]
+          px-[18px] py-[30px]
+          text-center
+          shadow-[0_10px_30px_rgba(79,43,14,0.07)]
+
+          max-[359px]:rounded-[14px]
+          max-[359px]:px-[15px]
+          max-[359px]:py-[25px]
+
+          min-[430px]:max-[599px]:max-w-[420px]
+          min-[430px]:max-[599px]:rounded-[18px]
+          min-[430px]:max-[599px]:px-6
+          min-[430px]:max-[599px]:py-[35px]
+
+          min-[600px]:max-[1023px]:max-w-[500px]
+          min-[600px]:max-[1023px]:rounded-[22px]
+          min-[600px]:max-[1023px]:px-10
+          min-[600px]:max-[1023px]:py-[42px]
+          min-[600px]:max-[1023px]:shadow-[0_18px_45px_rgba(79,43,14,0.09)]
+
+          min-[1024px]:max-w-[560px]
+          min-[1024px]:rounded-[26px]
+          min-[1024px]:px-[52px]
+          min-[1024px]:pt-[50px]
+          min-[1024px]:pb-[45px]
+          min-[1024px]:bg-[rgba(255,253,248,0.98)]
+          min-[1024px]:shadow-[0_22px_60px_rgba(79,43,14,0.11)]
+
+          min-[1440px]:max-w-[600px]
+          min-[1440px]:px-[58px]
+          min-[1440px]:pt-[56px]
+          min-[1440px]:pb-[50px]
+        "
+      >
         {/* FAILED ICON */}
 
-        <div className="cross">×</div>
+        <div
+          className="
+            mx-auto mb-[14px]
+            grid h-[72px] w-[72px] place-items-center
+            rounded-full
+            bg-[linear-gradient(145deg,#c84b42,#a92720)]
+            font-[Arial,sans-serif]
+            text-[43px] font-light leading-none text-white
+            shadow-[0_7px_18px_rgba(184,58,50,0.2)]
+
+            max-[359px]:mb-3
+            max-[359px]:h-[62px]
+            max-[359px]:w-[62px]
+            max-[359px]:text-[37px]
+
+            min-[430px]:max-[599px]:h-[78px]
+            min-[430px]:max-[599px]:w-[78px]
+            min-[430px]:max-[599px]:text-[46px]
+
+            min-[600px]:max-[1023px]:mb-[18px]
+            min-[600px]:max-[1023px]:h-[84px]
+            min-[600px]:max-[1023px]:w-[84px]
+            min-[600px]:max-[1023px]:text-[50px]
+
+            min-[1024px]:mb-5
+            min-[1024px]:h-[92px]
+            min-[1024px]:w-[92px]
+            min-[1024px]:text-[55px]
+            min-[1024px]:shadow-[0_10px_25px_rgba(184,58,50,0.2)]
+
+            min-[1440px]:h-[100px]
+            min-[1440px]:w-[100px]
+            min-[1440px]:text-[60px]
+          "
+        >
+          ×
+        </div>
 
         {/* TITLE */}
 
-        <h1>Payment Failed</h1>
+        <h1
+          className="
+            m-0
+            font-[Georgia,'Times_New_Roman',serif]
+            text-[22px] font-bold
+            text-[#a71919]
 
-        <h2>Jai Shree Krishna</h2>
+            max-[359px]:text-[20px]
 
-        <div className="divider">
-          <span />
-          <b>✦</b>
-          <span />
+            min-[430px]:max-[599px]:text-[25px]
+
+            min-[600px]:max-[1023px]:text-[30px]
+
+            min-[1024px]:text-[34px]
+
+            min-[1440px]:text-[38px]
+          "
+        >
+          Payment Failed
+        </h1>
+
+        <h2
+          className="
+            my-[7px]
+            font-[Georgia,'Times_New_Roman',serif]
+            text-[15px] font-bold
+            text-[#641010]
+
+            max-[359px]:text-[14px]
+
+            min-[430px]:max-[599px]:text-[16px]
+
+            min-[600px]:max-[1023px]:mt-[9px]
+            min-[600px]:max-[1023px]:text-[17px]
+
+            min-[1024px]:mt-[10px]
+            min-[1024px]:mb-0
+            min-[1024px]:text-[18px]
+
+            min-[1440px]:text-[19px]
+          "
+        >
+          Jai Shree Krishna
+        </h2>
+
+        {/* DIVIDER */}
+
+        <div
+          className="
+            my-[13px]
+            flex items-center justify-center gap-2
+
+            min-[600px]:max-[1023px]:my-[17px]
+
+            min-[1024px]:my-5
+          "
+        >
+          <span
+            className="
+              h-px w-[45px]
+              bg-[linear-gradient(to_right,transparent,#d5b66d)]
+
+              min-[600px]:max-[1023px]:w-[70px]
+
+              min-[1024px]:w-[90px]
+            "
+          />
+
+          <b
+            className="
+              text-[9px] text-[#c99435]
+
+              min-[1024px]:text-[11px]
+            "
+          >
+            ✦
+          </b>
+
+          <span
+            className="
+              h-px w-[45px]
+              bg-[linear-gradient(to_left,transparent,#d5b66d)]
+
+              min-[600px]:max-[1023px]:w-[70px]
+
+              min-[1024px]:w-[90px]
+            "
+          />
         </div>
 
-        <p className="message">
+        {/* MESSAGE */}
+
+        <p
+          className="
+            mx-auto mb-5
+            max-w-[310px]
+            text-[12px]
+            leading-[1.6]
+            text-[#776d65]
+
+            max-[359px]:mb-[17px]
+            max-[359px]:text-[11px]
+
+            min-[430px]:max-[599px]:text-[13px]
+
+            min-[600px]:max-[1023px]:mb-[25px]
+            min-[600px]:max-[1023px]:max-w-[360px]
+            min-[600px]:max-[1023px]:text-[14px]
+
+            min-[1024px]:mb-[29px]
+            min-[1024px]:max-w-[400px]
+            min-[1024px]:text-[14px]
+            min-[1024px]:leading-[1.7]
+
+            min-[1440px]:max-w-[420px]
+            min-[1440px]:text-[15px]
+          "
+        >
           We could not complete your contribution.
+          <br />
           Please try again.
         </p>
 
         {/* ACTIONS */}
 
-        <div className="actions">
+        <div
+          className="
+            w-full
+
+            min-[1024px]:mx-auto
+            min-[1024px]:max-w-[390px]
+
+            min-[1440px]:max-w-[420px]
+          "
+        >
           <button
             type="button"
-            className="retry"
             onClick={() => router.back()}
+            className="
+              h-[46px] w-full
+              rounded-[9px]
+              border-0
+              bg-[#a71919]
+              text-[14px] font-bold
+              text-white
+              shadow-[0_6px_15px_rgba(113,17,17,0.14)]
+              transition-all duration-200 ease-in-out
+
+              active:scale-[0.985]
+
+              max-[359px]:h-[44px]
+              max-[359px]:text-[13px]
+
+              min-[430px]:max-[599px]:h-[50px]
+              min-[430px]:max-[599px]:text-[15px]
+
+              min-[600px]:max-[1023px]:h-[53px]
+              min-[600px]:max-[1023px]:rounded-[11px]
+              min-[600px]:max-[1023px]:text-[15px]
+
+              min-[1024px]:h-[54px]
+              min-[1024px]:rounded-[12px]
+              min-[1024px]:text-[15px]
+              min-[1024px]:hover:-translate-y-px
+              min-[1024px]:hover:bg-[#7f1111]
+              min-[1024px]:hover:shadow-[0_9px_22px_rgba(113,17,17,0.18)]
+
+              min-[1440px]:h-[56px]
+              min-[1440px]:text-[16px]
+            "
           >
             Try Again
           </button>
 
           <button
             type="button"
-            className="home"
             onClick={() => router.push("/dashboard")}
+            className="
+              mt-2
+              h-[42px] w-full
+              border-0
+              bg-transparent
+              text-[12px]
+              text-[#776d65]
+              transition-colors duration-200 ease-in-out
+
+              max-[359px]:h-[38px]
+              max-[359px]:text-[11px]
+
+              min-[600px]:max-[1023px]:h-[44px]
+              min-[600px]:max-[1023px]:text-[13px]
+
+              min-[1024px]:mt-[9px]
+              min-[1024px]:h-[44px]
+              min-[1024px]:text-[13px]
+              min-[1024px]:hover:text-[#a71919]
+            "
           >
             ← Back to Home
           </button>
@@ -58,689 +351,23 @@ export default function DonationFailed() {
 
         {/* SECURITY */}
 
-        <div className="secure">
+        <div
+          className="
+            mt-[13px]
+            text-[9px] font-semibold
+            text-[#9b762f]
+
+            max-[600px]:mt-[8px]
+
+            min-[600px]:max-[1023px]:text-[10px]
+
+            min-[1024px]:mt-[18px]
+            min-[1024px]:text-[10px]
+          "
+        >
           🔒 Your payment information is secure
         </div>
       </section>
-
-      <style jsx global>{`
-        /* ==========================================
-           PAGE
-        ========================================== */
-
-        .failedScreen {
-          position: relative;
-
-          width: 100%;
-          min-height: 100dvh;
-
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
-          padding:
-            20px
-            20px
-            calc(
-              20px +
-              env(safe-area-inset-bottom)
-            );
-
-          overflow: hidden;
-
-          background:
-            radial-gradient(
-              circle at 50% 5%,
-              #ffffff 0%,
-              #fffaf0 42%,
-              #f6ead5 100%
-            );
-
-          color: #4b4039;
-        }
-
-        /* ==========================================
-           CARD
-        ========================================== */
-
-        .failedCard {
-          position: relative;
-          z-index: 2;
-
-          width: 100%;
-          max-width: 390px;
-
-          padding: 30px 18px;
-
-          border: 1px solid #eadbc5;
-
-          border-radius: 16px;
-
-          background: #fffdf8;
-
-          text-align: center;
-
-          box-shadow:
-            0 10px 30px
-            rgba(79, 43, 14, 0.07);
-        }
-
-        /* ==========================================
-           FAILED ICON
-        ========================================== */
-
-        .cross {
-          width: 72px;
-          height: 72px;
-
-          display: grid;
-          place-items: center;
-
-          margin: 0 auto 14px;
-
-          border-radius: 50%;
-
-          background:
-            linear-gradient(
-              145deg,
-              #c84b42,
-              #a92720
-            );
-
-          color: white;
-
-          font-family: Arial, sans-serif;
-
-          font-size: 43px;
-          font-weight: 300;
-
-          line-height: 1;
-
-          box-shadow:
-            0 7px 18px
-            rgba(184, 58, 50, 0.2);
-        }
-
-        /* ==========================================
-           TITLE
-        ========================================== */
-
-        .failedCard h1 {
-          margin: 0;
-
-          color: #a71919;
-
-          font-family:
-            Georgia,
-            "Times New Roman",
-            serif;
-
-          font-size: 22px;
-          font-weight: 700;
-        }
-
-        .failedCard h2 {
-          margin: 7px 0;
-
-          color: #641010;
-
-          font-family:
-            Georgia,
-            "Times New Roman",
-            serif;
-
-          font-size: 15px;
-          font-weight: 700;
-        }
-
-        /* ==========================================
-           DIVIDER
-        ========================================== */
-
-        .divider {
-          display: flex;
-
-          align-items: center;
-          justify-content: center;
-
-          gap: 8px;
-
-          margin: 13px 0;
-        }
-
-        .divider span {
-          width: 45px;
-          height: 1px;
-
-          background:
-            linear-gradient(
-              to right,
-              transparent,
-              #d5b66d
-            );
-        }
-
-        .divider span:last-child {
-          background:
-            linear-gradient(
-              to left,
-              transparent,
-              #d5b66d
-            );
-        }
-
-        .divider b {
-          color: #c99435;
-
-          font-size: 9px;
-        }
-
-        /* ==========================================
-           MESSAGE
-        ========================================== */
-
-        .message {
-          max-width: 310px;
-
-          margin: 0 auto 20px;
-
-          color: #776d65;
-
-          font-size: 12px;
-
-          line-height: 1.6;
-        }
-
-        /* ==========================================
-           ACTIONS
-        ========================================== */
-
-        .actions {
-          width: 100%;
-        }
-
-        .retry {
-          width: 100%;
-          height: 46px;
-
-          border: 0;
-
-          border-radius: 9px;
-
-          background: #a71919;
-
-          color: white;
-
-          font-size: 14px;
-          font-weight: 700;
-
-          box-shadow:
-            0 6px 15px
-            rgba(113, 17, 17, 0.14);
-
-          transition:
-            transform 0.18s ease,
-            background 0.18s ease,
-            box-shadow 0.18s ease;
-        }
-
-        .retry:active {
-          transform: scale(0.985);
-        }
-
-        .home {
-          width: 100%;
-          height: 42px;
-
-          margin-top: 8px;
-
-          border: 0;
-
-          background: transparent;
-
-          color: #776d65;
-
-          font-size: 12px;
-
-          transition:
-            color 0.18s ease;
-        }
-
-        /* ==========================================
-           SECURITY
-        ========================================== */
-
-        .secure {
-          margin-top: 13px;
-
-          color: #9b762f;
-
-          font-size: 9px;
-          font-weight: 600;
-        }
-
-        /* ==========================================
-           DECORATION
-        ========================================== */
-
-        .decoration {
-          position: absolute;
-
-          width: 100px;
-          height: 100px;
-
-          border: 1px solid #d5b66d;
-
-          border-radius: 50%;
-
-          opacity: 0.14;
-
-          pointer-events: none;
-        }
-
-        .decorationLeft {
-          left: -50px;
-          bottom: 30px;
-        }
-
-        .decorationRight {
-          top: 35px;
-          right: -50px;
-        }
-
-        /* ==========================================
-           SMALL MOBILE
-        ========================================== */
-
-        @media (max-width: 359px) {
-          .failedScreen {
-            padding: 14px;
-          }
-
-          .failedCard {
-            padding: 25px 15px;
-
-            border-radius: 14px;
-          }
-
-          .cross {
-            width: 62px;
-            height: 62px;
-
-            margin-bottom: 12px;
-
-            font-size: 37px;
-          }
-
-          .failedCard h1 {
-            font-size: 20px;
-          }
-
-          .failedCard h2 {
-            font-size: 14px;
-          }
-
-          .message {
-            margin-bottom: 17px;
-
-            font-size: 11px;
-          }
-
-          .retry {
-            height: 44px;
-
-            font-size: 13px;
-          }
-
-          .home {
-            height: 38px;
-
-            font-size: 11px;
-          }
-        }
-
-        /* ==========================================
-           SHORT MOBILE
-        ========================================== */
-
-        @media (max-height: 600px) and (max-width: 599px) {
-          .failedCard {
-            padding-top: 22px;
-            padding-bottom: 22px;
-          }
-
-          .cross {
-            width: 58px;
-            height: 58px;
-
-            margin-bottom: 10px;
-
-            font-size: 35px;
-          }
-
-          .divider {
-            margin: 9px 0;
-          }
-
-          .message {
-            margin-bottom: 15px;
-          }
-
-          .secure {
-            margin-top: 8px;
-          }
-        }
-
-        /* ==========================================
-           LARGE MOBILE
-        ========================================== */
-
-        @media (min-width: 430px) and (max-width: 599px) {
-          .failedScreen {
-            padding: 28px;
-          }
-
-          .failedCard {
-            max-width: 420px;
-
-            padding: 35px 24px;
-
-            border-radius: 18px;
-          }
-
-          .cross {
-            width: 78px;
-            height: 78px;
-
-            font-size: 46px;
-          }
-
-          .failedCard h1 {
-            font-size: 25px;
-          }
-
-          .failedCard h2 {
-            font-size: 16px;
-          }
-
-          .message {
-            font-size: 13px;
-          }
-
-          .retry {
-            height: 50px;
-
-            font-size: 15px;
-          }
-        }
-
-        /* ==========================================
-           TABLET
-        ========================================== */
-
-        @media (min-width: 600px) and (max-width: 1023px) {
-          .failedScreen {
-            padding: 50px 24px;
-          }
-
-          .failedCard {
-            max-width: 500px;
-
-            padding: 42px 40px;
-
-            border-radius: 22px;
-
-            box-shadow:
-              0 18px 45px
-              rgba(79, 43, 14, 0.09);
-          }
-
-          .cross {
-            width: 84px;
-            height: 84px;
-
-            margin-bottom: 18px;
-
-            font-size: 50px;
-          }
-
-          .failedCard h1 {
-            font-size: 30px;
-          }
-
-          .failedCard h2 {
-            margin-top: 9px;
-
-            font-size: 17px;
-          }
-
-          .divider {
-            margin: 17px 0;
-          }
-
-          .divider span {
-            width: 70px;
-          }
-
-          .message {
-            max-width: 360px;
-
-            margin-bottom: 25px;
-
-            font-size: 14px;
-          }
-
-          .retry {
-            height: 53px;
-
-            border-radius: 11px;
-
-            font-size: 15px;
-          }
-
-          .home {
-            height: 44px;
-
-            font-size: 13px;
-          }
-
-          .secure {
-            font-size: 10px;
-          }
-        }
-
-        /* ==========================================
-           DESKTOP WEBSITE
-        ========================================== */
-
-        @media (min-width: 1024px) {
-          .failedScreen {
-            min-height: 100vh;
-
-            padding: 60px 40px;
-
-            background:
-              radial-gradient(
-                circle at top left,
-                rgba(201, 148, 53, 0.13),
-                transparent 33%
-              ),
-              radial-gradient(
-                circle at bottom right,
-                rgba(167, 25, 25, 0.08),
-                transparent 30%
-              ),
-              #fff9ed;
-          }
-
-          .failedCard {
-            max-width: 560px;
-
-            padding: 50px 52px 45px;
-
-            border-radius: 26px;
-
-            background:
-              rgba(
-                255,
-                253,
-                248,
-                0.98
-              );
-
-            box-shadow:
-              0 22px 60px
-              rgba(79, 43, 14, 0.11);
-          }
-
-          .cross {
-            width: 92px;
-            height: 92px;
-
-            margin-bottom: 20px;
-
-            font-size: 55px;
-
-            box-shadow:
-              0 10px 25px
-              rgba(184, 58, 50, 0.2);
-          }
-
-          .failedCard h1 {
-            font-size: 34px;
-          }
-
-          .failedCard h2 {
-            margin: 10px 0 0;
-
-            font-size: 18px;
-          }
-
-          .divider {
-            margin: 20px 0;
-          }
-
-          .divider span {
-            width: 90px;
-          }
-
-          .divider b {
-            font-size: 11px;
-          }
-
-          .message {
-            max-width: 400px;
-
-            margin-bottom: 29px;
-
-            font-size: 14px;
-
-            line-height: 1.7;
-          }
-
-          .actions {
-            max-width: 390px;
-
-            margin: 0 auto;
-          }
-
-          .retry {
-            height: 54px;
-
-            border-radius: 12px;
-
-            font-size: 15px;
-          }
-
-          .retry:hover {
-            background: #7f1111;
-
-            transform: translateY(-1px);
-
-            box-shadow:
-              0 9px 22px
-              rgba(113, 17, 17, 0.18);
-          }
-
-          .home {
-            height: 44px;
-
-            margin-top: 9px;
-
-            font-size: 13px;
-          }
-
-          .home:hover {
-            color: #a71919;
-          }
-
-          .secure {
-            margin-top: 18px;
-
-            font-size: 10px;
-          }
-
-          .decoration {
-            width: 180px;
-            height: 180px;
-
-            opacity: 0.1;
-          }
-
-          .decorationLeft {
-            left: -70px;
-            bottom: 55px;
-          }
-
-          .decorationRight {
-            top: 55px;
-            right: -70px;
-          }
-        }
-
-        /* ==========================================
-           LARGE DESKTOP
-        ========================================== */
-
-        @media (min-width: 1440px) {
-          .failedCard {
-            max-width: 600px;
-
-            padding: 56px 58px 50px;
-          }
-
-          .cross {
-            width: 100px;
-            height: 100px;
-
-            font-size: 60px;
-          }
-
-          .failedCard h1 {
-            font-size: 38px;
-          }
-
-          .failedCard h2 {
-            font-size: 19px;
-          }
-
-          .message {
-            max-width: 420px;
-
-            font-size: 15px;
-          }
-
-          .actions {
-            max-width: 420px;
-          }
-
-          .retry {
-            height: 56px;
-
-            font-size: 16px;
-          }
-        }
-      `}</style>
     </main>
   );
 }

@@ -8,7 +8,18 @@ import {
 
 import { useRouter } from "next/navigation";
 
-type Cart = Record<number, number>;
+/* =====================================================
+   TYPES
+===================================================== */
+
+type Weight = "250g" | "500g" | "1kg";
+
+type CartItem = {
+  quantity: number;
+  weight: Weight;
+};
+
+type Cart = Record<number, CartItem>;
 
 type Product = {
   id: number;
@@ -16,6 +27,37 @@ type Product = {
   price: number;
   image: string;
 };
+
+/* =====================================================
+   WEIGHT OPTIONS
+   Base price = 500g price
+===================================================== */
+
+const weights: {
+  id: Weight;
+  label: string;
+  multiplier: number;
+}[] = [
+  {
+    id: "250g",
+    label: "250 g",
+    multiplier: 0.5,
+  },
+  {
+    id: "500g",
+    label: "500 g",
+    multiplier: 1,
+  },
+  {
+    id: "1kg",
+    label: "1 kg",
+    multiplier: 2,
+  },
+];
+
+/* =====================================================
+   PRODUCTS
+===================================================== */
 
 const products: Product[] = [
   {
@@ -44,6 +86,29 @@ const products: Product[] = [
   },
 ];
 
+/* =====================================================
+   PRICE HELPER
+===================================================== */
+
+function getPrice(
+  product: Product,
+  weight: Weight
+) {
+  const selectedWeight =
+    weights.find(
+      (item) => item.id === weight
+    );
+
+  return Math.round(
+    product.price *
+      (selectedWeight?.multiplier ?? 1)
+  );
+}
+
+/* =====================================================
+   CART PAGE
+===================================================== */
+
 export default function CartPage() {
   const router = useRouter();
 
@@ -64,19 +129,111 @@ export default function CartPage() {
           "prasadam-cart"
         );
 
-      if (savedCart) {
-        const parsed =
-          JSON.parse(
-            savedCart
-          ) as Cart;
-
-        setCart(parsed);
+      if (!savedCart) {
+        setCart({});
+        return;
       }
+
+      const parsed =
+        JSON.parse(savedCart);
+
+      /*
+        New format:
+
+        {
+          "1": {
+            quantity: 1,
+            weight: "500g"
+          }
+        }
+      */
+
+      const convertedCart: Cart = {};
+
+      Object.entries(parsed).forEach(
+        ([id, value]) => {
+          const productId =
+            Number(id);
+
+          /*
+            Support old cart format too:
+
+            {
+              "1": 2
+            }
+
+            Old cart will automatically
+            become 500g.
+          */
+
+          if (
+            typeof value ===
+            "number"
+          ) {
+            if (value > 0) {
+              convertedCart[
+                productId
+              ] = {
+                quantity: value,
+                weight: "500g",
+              };
+            }
+
+            return;
+          }
+
+          /*
+            New cart format
+          */
+
+          if (
+            value &&
+            typeof value ===
+              "object"
+          ) {
+            const item =
+              value as Partial<CartItem>;
+
+            const quantity =
+              Number(
+                item.quantity
+              );
+
+            const weight =
+              item.weight;
+
+            if (
+              quantity > 0 &&
+              (
+                weight ===
+                  "250g" ||
+                weight ===
+                  "500g" ||
+                weight ===
+                  "1kg"
+              )
+            ) {
+              convertedCart[
+                productId
+              ] = {
+                quantity,
+                weight,
+              };
+            }
+          }
+        }
+      );
+
+      setCart(
+        convertedCart
+      );
     } catch (error) {
       console.error(
         "Failed to load cart:",
         error
       );
+
+      setCart({});
     } finally {
       setLoaded(true);
     }
@@ -110,16 +267,34 @@ export default function CartPage() {
       return products
         .filter(
           (product) =>
-            (cart[product.id] ??
-              0) > 0
+            (
+              cart[
+                product.id
+              ]?.quantity ?? 0
+            ) > 0
         )
-        .map((product) => ({
-          ...product,
+        .map((product) => {
+          const cartItem =
+            cart[product.id];
 
-          quantity:
-            cart[product.id] ??
-            0,
-        }));
+          const weight =
+            cartItem?.weight ??
+            "500g";
+
+          const selectedPrice =
+            getPrice(
+              product,
+              weight
+            );
+
+          return {
+            ...product,
+            quantity:
+              cartItem.quantity,
+            weight,
+            selectedPrice,
+          };
+        });
     }, [cart]);
 
   /* =====================================================
@@ -145,7 +320,7 @@ export default function CartPage() {
       return cartItems.reduce(
         (total, item) =>
           total +
-          item.price *
+          item.selectedPrice *
             item.quantity,
         0
       );
@@ -170,13 +345,25 @@ export default function CartPage() {
     id: number
   ) => {
     setCart(
-      (previousCart) => ({
-        ...previousCart,
+      (previousCart) => {
+        const existing =
+          previousCart[id];
 
-        [id]:
-          (previousCart[id] ??
-            0) + 1,
-      })
+        if (!existing) {
+          return previousCart;
+        }
+
+        return {
+          ...previousCart,
+
+          [id]: {
+            ...existing,
+            quantity:
+              existing.quantity +
+              1,
+          },
+        };
+      }
     );
   };
 
@@ -189,18 +376,21 @@ export default function CartPage() {
   ) => {
     setCart(
       (previousCart) => {
-        const quantity =
-          previousCart[id] ??
-          0;
+        const existing =
+          previousCart[id];
 
-        if (quantity <= 1) {
+        if (!existing) {
+          return previousCart;
+        }
+
+        if (
+          existing.quantity <= 1
+        ) {
           const updatedCart = {
             ...previousCart,
           };
 
-          delete updatedCart[
-            id
-          ];
+          delete updatedCart[id];
 
           return updatedCart;
         }
@@ -208,8 +398,12 @@ export default function CartPage() {
         return {
           ...previousCart,
 
-          [id]:
-            quantity - 1,
+          [id]: {
+            ...existing,
+            quantity:
+              existing.quantity -
+              1,
+          },
         };
       }
     );
@@ -234,6 +428,39 @@ export default function CartPage() {
       }
     );
   };
+
+  /* =====================================================
+     CHANGE WEIGHT
+  ===================================================== */
+
+  const changeWeight = (
+    id: number,
+    weight: Weight
+  ) => {
+    setCart(
+      (previousCart) => {
+        const existing =
+          previousCart[id];
+
+        if (!existing) {
+          return previousCart;
+        }
+
+        return {
+          ...previousCart,
+
+          [id]: {
+            ...existing,
+            weight,
+          },
+        };
+      }
+    );
+  };
+
+  /* =====================================================
+     FORMAT PRICE
+  ===================================================== */
 
   const formatPrice = (
     price: number
@@ -424,7 +651,6 @@ export default function CartPage() {
           className="
             mb-6
             hidden
-
             lg:block
           "
         >
@@ -478,9 +704,7 @@ export default function CartPage() {
             xl:grid-cols-[minmax(0,1fr)_390px]
           "
         >
-          {/* =========================================
-              CART ITEMS
-          ========================================= */}
+          {/* CART ITEMS */}
 
           <section>
             <div
@@ -540,9 +764,7 @@ export default function CartPage() {
                     key={item.id}
                     className={`
                       p-3
-
                       sm:p-4
-
                       lg:p-5
 
                       ${
@@ -677,11 +899,85 @@ export default function CartPage() {
                           </button>
                         </div>
 
-                        {/* PRICE */}
+                        {/* WEIGHT */}
+
+                        <div
+                          className="
+                            mt-2
+                            flex
+                            flex-wrap
+                            gap-2
+                          "
+                        >
+                          {weights.map(
+                            (
+                              weight
+                            ) => {
+                              const price =
+                                getPrice(
+                                  item,
+                                  weight.id
+                                );
+
+                              const active =
+                                item.weight ===
+                                weight.id;
+
+                              return (
+                                <button
+                                  key={
+                                    weight.id
+                                  }
+                                  type="button"
+                                  onClick={() =>
+                                    changeWeight(
+                                      item.id,
+                                      weight.id
+                                    )
+                                  }
+                                  className={`
+                                    rounded-lg
+                                    border
+                                    px-2.5
+                                    py-1.5
+                                    text-[10px]
+                                    font-bold
+                                    transition
+
+                                    ${
+                                      active
+                                        ? "border-[#a71919] bg-[#a71919] text-white"
+                                        : "border-[#e3d3bf] bg-white text-[#6e6259] hover:border-[#c18b32]"
+                                    }
+                                  `}
+                                >
+                                  {
+                                    weight.label
+                                  }
+
+                                  <span
+                                    className={
+                                      active
+                                        ? "ml-1 opacity-90"
+                                        : "ml-1 text-[#a71919]"
+                                    }
+                                  >
+                                    ₹
+                                    {
+                                      price
+                                    }
+                                  </span>
+                                </button>
+                              );
+                            }
+                          )}
+                        </div>
+
+                        {/* SELECTED PRICE */}
 
                         <p
                           className="
-                            mt-1
+                            mt-2
                             text-[13px]
                             font-bold
                             text-[#a71919]
@@ -691,8 +987,27 @@ export default function CartPage() {
                         >
                           ₹
                           {formatPrice(
-                            item.price
+                            item.selectedPrice
                           )}
+                          <span
+                            className="
+                              ml-1
+                              text-[10px]
+                              font-medium
+                              text-[#81756c]
+                            "
+                          >
+                            /{" "}
+                            {
+                              weights.find(
+                                (
+                                  weight
+                                ) =>
+                                  weight.id ===
+                                  item.weight
+                              )?.label
+                            }
+                          </span>
                         </p>
 
                         {/* QUANTITY */}
@@ -794,7 +1109,7 @@ export default function CartPage() {
                           >
                             ₹
                             {formatPrice(
-                              item.price *
+                              item.selectedPrice *
                                 item.quantity
                             )}
                           </strong>
@@ -839,14 +1154,11 @@ export default function CartPage() {
             </button>
           </section>
 
-          {/* =========================================
-              ORDER SUMMARY
-          ========================================= */}
+          {/* ORDER SUMMARY */}
 
           <aside
             className="
               hidden
-
               md:block
 
               lg:sticky
@@ -994,9 +1306,7 @@ export default function CartPage() {
                 "
               >
                 Place Order
-                <span>
-                  →
-                </span>
+                <span>→</span>
               </button>
 
               <p
@@ -1014,9 +1324,7 @@ export default function CartPage() {
         </div>
       </div>
 
-      {/* =============================================
-          MOBILE ORDER BAR
-      ============================================= */}
+      {/* MOBILE ORDER BAR */}
 
       <div
         className="
@@ -1114,9 +1422,7 @@ export default function CartPage() {
             "
           >
             Place Order
-            <span>
-              →
-            </span>
+            <span>→</span>
           </button>
         </div>
       </div>

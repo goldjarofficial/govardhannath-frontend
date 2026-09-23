@@ -12,13 +12,17 @@ type ProfileData = {
   image: string;
 };
 
+type Cart = Record<number, number>;
+
 const PROFILE_STORAGE_KEY = "profile-data";
+const CART_STORAGE_KEY = "prasadam-cart";
 
 export default function HomeHeader() {
   const router = useRouter();
   const { t } = useLanguage();
 
   const [profileName, setProfileName] = useState("");
+  const [cartCount, setCartCount] = useState(0);
 
   /* =========================================================
      LOAD PROFILE
@@ -28,7 +32,7 @@ export default function HomeHeader() {
     const loadProfile = () => {
       try {
         const storedProfile = localStorage.getItem(
-          PROFILE_STORAGE_KEY,
+          PROFILE_STORAGE_KEY
         );
 
         if (!storedProfile) {
@@ -45,7 +49,7 @@ export default function HomeHeader() {
       } catch (error) {
         console.error(
           "Failed to load profile:",
-          error,
+          error
         );
 
         setProfileName("");
@@ -56,19 +60,85 @@ export default function HomeHeader() {
 
     window.addEventListener(
       "profile-updated",
-      loadProfile,
+      loadProfile
     );
 
     return () => {
       window.removeEventListener(
         "profile-updated",
-        loadProfile,
+        loadProfile
       );
     };
   }, []);
 
   /* =========================================================
-     BUTTON BASE STYLE
+     LOAD CART COUNT
+  ========================================================= */
+
+  useEffect(() => {
+    const loadCartCount = () => {
+      try {
+        const storedCart =
+          localStorage.getItem(
+            CART_STORAGE_KEY
+          );
+
+        if (!storedCart) {
+          setCartCount(0);
+          return;
+        }
+
+        const cart =
+          JSON.parse(storedCart) as Cart;
+
+        const totalItems =
+          Object.values(cart).reduce(
+            (total, quantity) =>
+              total + Number(quantity || 0),
+            0
+          );
+
+        setCartCount(totalItems);
+      } catch (error) {
+        console.error(
+          "Failed to load cart:",
+          error
+        );
+
+        setCartCount(0);
+      }
+    };
+
+    // Load immediately
+    loadCartCount();
+
+    // Same tab update
+    window.addEventListener(
+      "prasadam-cart-updated",
+      loadCartCount
+    );
+
+    // Other tab/window update
+    window.addEventListener(
+      "storage",
+      loadCartCount
+    );
+
+    return () => {
+      window.removeEventListener(
+        "prasadam-cart-updated",
+        loadCartCount
+      );
+
+      window.removeEventListener(
+        "storage",
+        loadCartCount
+      );
+    };
+  }, []);
+
+  /* =========================================================
+     BUTTON STYLE
   ========================================================= */
 
   const actionButtonClass = `
@@ -78,28 +148,19 @@ export default function HomeHeader() {
     w-9
     shrink-0
     place-items-center
-
     rounded-full
-
     border
     border-[#e7d6b9]
-
     bg-[#fffdf8]
-
     text-[#991919]
-
     shadow-[0_2px_8px_rgba(91,53,19,0.05)]
-
     transition-all
     duration-200
-
     hover:-translate-y-[1px]
     hover:border-[#d5b66f]
     hover:bg-[#fff6e6]
     hover:shadow-[0_5px_14px_rgba(91,53,19,0.11)]
-
     active:scale-95
-
     lg:h-11
     lg:w-11
   `;
@@ -114,26 +175,16 @@ export default function HomeHeader() {
         items-center
         justify-between
         gap-3
-
         border-b
         border-[#eee2cf]
-
         bg-[linear-gradient(180deg,#fffdf9_0%,#fffaf2_100%)]
-
         px-0
         pb-2
         pt-1
-
-        sm:min-h-[68px]
-        sm:pb-2.5
-
-        lg:min-h-[78px]
-        lg:pb-3
-        lg:pt-2
       "
     >
       {/* =====================================================
-          LEFT SIDE
+          LEFT
       ===================================================== */}
 
       <div
@@ -142,14 +193,8 @@ export default function HomeHeader() {
           min-w-0
           items-center
           gap-2.5
-
-          sm:gap-3
-
-          lg:gap-3.5
         "
       >
-        {/* Temple Logo */}
-
         <div
           className="
             relative
@@ -159,25 +204,12 @@ export default function HomeHeader() {
             shrink-0
             items-center
             justify-center
-
             rounded-full
-
             border
             border-[#dfc181]
-
             bg-[radial-gradient(circle,#fffdf9_0%,#fff3d9_100%)]
-
             text-[20px]
-
             shadow-[0_4px_12px_rgba(112,71,20,0.08)]
-
-            sm:h-11
-            sm:w-11
-            sm:text-[22px]
-
-            lg:h-[52px]
-            lg:w-[52px]
-            lg:text-[25px]
           "
         >
           <span
@@ -195,28 +227,17 @@ export default function HomeHeader() {
           </span>
         </div>
 
-        {/* Welcome Content */}
-
         <div className="min-w-0">
-          {/* Jai Shree Krishna */}
-
           <div
             className="
               flex
               items-center
               gap-1
-
               truncate
-
               text-[9px]
               font-semibold
               tracking-[0.2px]
-
               text-[#8a7968]
-
-              sm:text-[10px]
-
-              lg:text-[11px]
             "
           >
             <span className="text-[#c99435]">
@@ -232,29 +253,17 @@ export default function HomeHeader() {
             </span>
           </div>
 
-          {/* Profile Name */}
-
           <h1
             className="
               m-0
               mt-0.5
               max-w-[180px]
               truncate
-
               font-serif
               text-[15px]
               font-bold
               leading-tight
-
               text-[#302923]
-
-              sm:max-w-[240px]
-              sm:text-base
-
-              md:max-w-[320px]
-
-              lg:max-w-[420px]
-              lg:text-xl
             "
           >
             {profileName || "Devotee"}
@@ -263,7 +272,7 @@ export default function HomeHeader() {
       </div>
 
       {/* =====================================================
-          RIGHT SIDE
+          RIGHT
       ===================================================== */}
 
       <div
@@ -272,15 +281,9 @@ export default function HomeHeader() {
           shrink-0
           items-center
           gap-1.5
-
-          sm:gap-2
-
-          lg:gap-2.5
         "
       >
-        {/* ===================================================
-            NOTIFICATION
-        =================================================== */}
+        {/* NOTIFICATION */}
 
         <button
           type="button"
@@ -291,8 +294,6 @@ export default function HomeHeader() {
           title={t("notifications")}
           className={actionButtonClass}
         >
-          {/* Bell */}
-
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -300,52 +301,31 @@ export default function HomeHeader() {
             strokeWidth="1.8"
             strokeLinecap="round"
             strokeLinejoin="round"
+            className="h-[18px] w-[18px]"
             aria-hidden="true"
-            className="
-              h-[18px]
-              w-[18px]
-
-              sm:h-5
-              sm:w-5
-
-              lg:h-[21px]
-              lg:w-[21px]
-            "
           >
             <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
-
             <path d="M10 21h4" />
           </svg>
-
-          {/* Notification Indicator */}
 
           <span
             className="
               absolute
               right-[5px]
               top-[4px]
-
               h-[7px]
               w-[7px]
-
               rounded-full
-
               border
               border-[#fffdf8]
-
               bg-[#d4871f]
-
-              shadow-[0_1px_5px_rgba(212,135,31,0.4)]
-
-              sm:right-[6px]
-              sm:top-[5px]
             "
           />
         </button>
 
-        {/* ===================================================
+        {/* =================================================
             CART
-        =================================================== */}
+        ================================================= */}
 
         <button
           type="button"
@@ -363,17 +343,8 @@ export default function HomeHeader() {
             strokeWidth="1.8"
             strokeLinecap="round"
             strokeLinejoin="round"
+            className="h-[18px] w-[18px]"
             aria-hidden="true"
-            className="
-              h-[18px]
-              w-[18px]
-
-              sm:h-5
-              sm:w-5
-
-              lg:h-[21px]
-              lg:w-[21px]
-            "
           >
             <circle
               cx="9"
@@ -389,15 +360,60 @@ export default function HomeHeader() {
 
             <path d="M3 4h2l2.4 10.4a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 8H6" />
           </svg>
+
+          {/* =================================================
+              CART BADGE
+          ================================================= */}
+
+          {cartCount > 0 && (
+            <span
+              className="
+                absolute
+                -right-1
+                -top-1
+                flex
+                min-h-[18px]
+                min-w-[18px]
+                items-center
+                justify-center
+                rounded-full
+                border-2
+                border-[#fffaf2]
+                bg-[#e74b18]
+                px-1
+                text-[9px]
+                font-bold
+                leading-none
+                text-white
+                shadow-[0_2px_6px_rgba(231,75,24,0.3)]
+              "
+            >
+              {cartCount > 99
+                ? "99+"
+                : cartCount}
+            </span>
+          )}
         </button>
       </div>
 
-      {/* =====================================================
-          SUBTLE GOLD ACCENT
-      ===================================================== */}
+      {/* BOTTOM DECORATION */}
 
       <div
-        className=" pointer-events-none absolute  bottom-[-1px]  left-1/2 h-[2px] w-14   -translate-x-1/2 rounded-full  bg-gradient-to-r  from-transparent via-[#d0a24e] to-transparent  opacity-70 lg:w-20 "
+        className="
+          pointer-events-none
+          absolute
+          bottom-[-1px]
+          left-1/2
+          h-[2px]
+          w-14
+          -translate-x-1/2
+          rounded-full
+          bg-gradient-to-r
+          from-transparent
+          via-[#d0a24e]
+          to-transparent
+          opacity-70
+        "
       />
     </header>
   );

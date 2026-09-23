@@ -188,7 +188,7 @@ export default function ProfileDrawer({ onClose }: Props) {
 
   const handleEditProfile = () => {
     onClose();
-    router.push("/edit");
+    router.push("/profile");
   };
 
   // =========================================================

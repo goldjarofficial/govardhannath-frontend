@@ -7,14 +7,7 @@ import { useLanguage } from "../../lib/LanguageProvider";
 import type { TranslationKey } from "../../lib/i18n";
 import HomeHeader from "@/app/components/Header";
 
-/* =========================================================
-   TYPES
-========================================================= */
-
-type DarshanStatus =
-  | "completed"
-  | "openNow"
-  | "upcoming";
+type DarshanStatus = "completed" | "openNow" | "upcoming";
 
 type DarshanItem = {
   nameKey: TranslationKey;
@@ -24,17 +17,13 @@ type DarshanItem = {
   image: string;
 };
 
-/* =========================================================
-   DARSHAN DATA
-========================================================= */
-
 const DARSHANS: DarshanItem[] = [
   {
     nameKey: "mangala",
     time: "05:30 AM",
     hour: 5,
     minute: 30,
-    image: "/images/mangala.jpg",
+    image: "/images/mangala1.jpg",
   },
   {
     nameKey: "shringar",
@@ -87,36 +76,28 @@ const DARSHANS: DarshanItem[] = [
   },
 ];
 
-/* =========================================================
-   HELPERS
-========================================================= */
-
-function getMinutes(hour: number, minute: number) {
-  return hour * 60 + minute;
-}
+const getMinutes = (hour: number, minute: number) =>
+  hour * 60 + minute;
 
 function getStatus(
   index: number,
   currentTime: Date | null,
 ): DarshanStatus {
-  if (!currentTime) {
-    return "upcoming";
-  }
+  if (!currentTime) return "upcoming";
 
   const currentMinutes =
-    currentTime.getHours() * 60 +
-    currentTime.getMinutes();
+    currentTime.getHours() * 60 + currentTime.getMinutes();
 
   const currentDarshan = DARSHANS[index];
 
-  const currentDarshanMinutes = getMinutes(
+  const startTime = getMinutes(
     currentDarshan.hour,
     currentDarshan.minute,
   );
 
   const nextDarshan = DARSHANS[index + 1];
 
-  if (currentMinutes < currentDarshanMinutes) {
+  if (currentMinutes < startTime) {
     return "upcoming";
   }
 
@@ -124,41 +105,31 @@ function getStatus(
     return "openNow";
   }
 
-  const nextDarshanMinutes = getMinutes(
+  const nextTime = getMinutes(
     nextDarshan.hour,
     nextDarshan.minute,
   );
 
-  if (
-    currentMinutes >= currentDarshanMinutes &&
-    currentMinutes < nextDarshanMinutes
-  ) {
-    return "openNow";
-  }
-
-  return "completed";
+  return currentMinutes < nextTime
+    ? "openNow"
+    : "completed";
 }
 
 function getCurrentDarshan(
   currentTime: Date | null,
 ): DarshanItem | null {
-  if (!currentTime) {
-    return null;
-  }
+  if (!currentTime) return null;
 
   const currentMinutes =
-    currentTime.getHours() * 60 +
-    currentTime.getMinutes();
+    currentTime.getHours() * 60 + currentTime.getMinutes();
 
   for (let i = DARSHANS.length - 1; i >= 0; i--) {
     const darshan = DARSHANS[i];
 
-    const darshanMinutes = getMinutes(
-      darshan.hour,
-      darshan.minute,
-    );
-
-    if (currentMinutes >= darshanMinutes) {
+    if (
+      currentMinutes >=
+      getMinutes(darshan.hour, darshan.minute)
+    ) {
       return darshan;
     }
   }
@@ -166,49 +137,74 @@ function getCurrentDarshan(
   return null;
 }
 
-/* =========================================================
-   STATUS LABEL
-========================================================= */
+function StatusBadge({
+  status,
+  t,
+}: {
+  status: DarshanStatus;
+  t: ReturnType<typeof useLanguage>["t"];
+}) {
+  const styles = {
+    completed:
+      "border-gray-200 bg-gray-100 text-gray-500",
 
-function getStatusLabel(
-  status: DarshanStatus,
-  t: ReturnType<typeof useLanguage>["t"],
-) {
-  switch (status) {
-    case "completed":
-      return t("completed");
+    openNow:
+      "border-emerald-200 bg-emerald-50 text-emerald-700",
 
-    case "openNow":
-      return t("openNow");
+    upcoming:
+      "border-amber-200 bg-amber-50 text-amber-700",
+  };
 
-    default:
-      return t("upcoming");
-  }
+  const labels = {
+    completed: t("completed"),
+    openNow: t("openNow"),
+    upcoming: t("upcoming"),
+  };
+
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${styles[status]}`}
+    >
+      {status === "openNow" && (
+        <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500" />
+      )}
+
+      {labels[status]}
+    </span>
+  );
 }
 
-/* =========================================================
-   STATUS DESCRIPTION
-========================================================= */
+/* ---------------------------------------
+   PROFILE STYLE IMAGE
+---------------------------------------- */
 
-function getStatusDescription(
-  status: DarshanStatus,
-  t: ReturnType<typeof useLanguage>["t"],
-) {
-  switch (status) {
-    case "openNow":
-      return t("darshanLiveNow");
+function ProfileImage({
+  src,
+  alt,
+  size = "normal",
+}: {
+  src: string;
+  alt: string;
+  size?: "normal" | "large";
+}) {
+  const sizeClass =
+    size === "large"
+      ? "h-24 w-24"
+      : "h-16 w-16";
 
-    case "completed":
-      return t("darshanCompleted");
-
-    default:
-      return t("darshanUpcoming");
-  }
+  return (
+    <div
+      className={`relative shrink-0 overflow-hidden rounded-full border border-[#dfc38d] bg-[#fffaf0] shadow-sm ${sizeClass}`}
+    >
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        className="absolute inset-0 h-full w-full object-cover object-center"
+      />
+    </div>
+  );
 }
-
-/* =========================================================
-   COMPONENT
-========================================================= */
 
 export default function DarshanTimings() {
   const router = useRouter();
@@ -216,10 +212,6 @@ export default function DarshanTimings() {
 
   const [currentTime, setCurrentTime] =
     useState<Date | null>(null);
-
-  /* =======================================================
-     LIVE CLOCK
-  ======================================================= */
 
   useEffect(() => {
     const updateTime = () => {
@@ -238,36 +230,24 @@ export default function DarshanTimings() {
     };
   }, []);
 
-  /* =======================================================
-     CURRENT DARSHAN
-  ======================================================= */
-
   const currentDarshan =
     getCurrentDarshan(currentTime);
 
-  /* =======================================================
-     DATE
-  ======================================================= */
+  const locale =
+    language === "hi"
+      ? "hi-IN"
+      : language === "gu"
+        ? "gu-IN"
+        : "en-IN";
 
   const currentDate = currentTime
-    ? currentTime.toLocaleDateString(
-        language === "hi"
-          ? "hi-IN"
-          : language === "gu"
-            ? "gu-IN"
-            : "en-IN",
-        {
-          weekday: "long",
-          day: "2-digit",
-          month: "long",
-          year: "numeric",
-        },
-      )
+    ? currentTime.toLocaleDateString(locale, {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })
     : "";
-
-  /* =======================================================
-     TIME
-  ======================================================= */
 
   const currentFormattedTime = currentTime
     ? currentTime.toLocaleTimeString("en-IN", {
@@ -278,596 +258,128 @@ export default function DarshanTimings() {
       })
     : "--:--:--";
 
-  /* =======================================================
-     UI
-  ======================================================= */
-
   return (
-    <main
-      className="
-        min-h-[100dvh]
-        w-full
-        overflow-x-hidden
-
-        bg-[#fffaf0]
-
-        px-3
-        pb-[84px]
-        pt-2
-
-        text-[#40372f]
-
-        sm:px-4
-        sm:pt-3
-
-        md:px-6
-        md:pt-4
-
-        lg:ml-[92px]
-        lg:w-[calc(100%-92px)]
-        lg:px-8
-        lg:pb-10
-        lg:pt-5
-
-        xl:px-10
-        2xl:px-12
-      "
-    >
-      <div className="mx-auto w-full max-w-[1800px]">
-
-        {/* =================================================
-            GLOBAL HEADER
-        ================================================= */}
+    <main className="min-h-screen bg-[#fffaf0] px-4 py-5 text-[#40372f] lg:ml-[92px] lg:px-10">
+      <div className="mx-auto max-w-7xl">
 
         <HomeHeader />
 
-        {/* =================================================
-            MOBILE / TABLET HEADER
-        ================================================= */}
+        {/* MOBILE HEADER */}
 
-        <header
-          className="
-            flex
-            min-h-[100px]
-            items-center
-            justify-between
-            gap-2
-            py-3
-
-            sm:min-h-[108px]
-            sm:gap-3
-
-            md:min-h-[118px]
-            md:py-4
-
-            lg:hidden
-          "
-        >
-          {/* BACK */}
+        <div className="mb-6 flex items-center gap-4 lg:hidden">
 
           <button
             type="button"
             onClick={() => router.back()}
             aria-label={t("back")}
-            className="
-              grid
-              h-10
-              w-10
-              shrink-0
-              place-items-center
-
-              rounded-full
-
-              border
-              border-[#ead9bc]
-
-              bg-[#fffdf7]
-
-              text-[27px]
-              leading-none
-              text-[#991919]
-
-              shadow-[0_3px_12px_rgba(91,53,19,0.07)]
-
-              transition
-
-              active:scale-95
-
-              sm:h-11
-              sm:w-11
-
-              md:h-12
-              md:w-12
-            "
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#e8d8bc] bg-white text-2xl text-[#991919] shadow-sm transition hover:bg-[#fff8ec] active:scale-95"
           >
             ‹
           </button>
 
-          {/* TITLE */}
-
           <div className="min-w-0 flex-1 text-center">
-            <div
-              className="
-                mb-0.5
-                text-[10px]
-                text-[#c99435]
 
-                sm:text-xs
-              "
-            >
-              ✦
-            </div>
+            <p className="mb-1 text-xs font-medium uppercase tracking-[2px] text-[#c99435]">
+              {t("darshan")}
+            </p>
 
-            <h1
-              className="
-                m-0
-                truncate
-
-                font-serif
-                text-[18px]
-                font-bold
-                leading-tight
-
-                text-[#991919]
-
-                sm:text-[21px]
-
-                md:text-[25px]
-              "
-            >
-              {currentDarshan && (
-                <span className="text-[#c99435]">
-                  {t(currentDarshan.nameKey)}
-                </span>
-              )}
+            <h1 className="truncate font-serif text-2xl font-bold text-[#991919]">
+              {currentDarshan
+                ? t(currentDarshan.nameKey)
+                : t("darshan")}
             </h1>
 
-            <p
-              className="
-                mt-1
-                truncate
-
-                text-[9px]
-                text-[#82766b]
-
-                sm:text-[11px]
-
-                md:text-xs
-              "
-            >
+            <p className="mt-1 text-xs text-[#8a7b6c]">
               {currentDate}
             </p>
 
-            {/* TIME */}
-
-            <div
-              className="
-                mt-1.5
-                inline-flex
-                items-center
-                gap-1.5
-
-                rounded-full
-
-                border
-                border-[#ead7b5]
-
-                bg-white/80
-
-                px-2.5
-                py-1
-
-                text-[9px]
-                font-semibold
-
-                text-[#6f5a46]
-
-                shadow-[0_2px_8px_rgba(91,53,19,0.05)]
-
-                sm:mt-2
-                sm:px-3
-                sm:py-1.5
-                sm:text-[10px]
-
-                md:text-xs
-              "
-            >
-              <span
-                className="
-                  h-1.5
-                  w-1.5
-                  animate-pulse
-                  rounded-full
-                  bg-[#159b60]
-
-                  sm:h-2
-                  sm:w-2
-                "
-              />
-
+            <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-[#ead9bd] bg-white px-3 py-1.5 text-xs font-medium text-[#6d5b49]">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
               {currentFormattedTime}
             </div>
+
           </div>
 
-          {/* CURRENT DARSHAN IMAGE */}
-
-          <div
-            className="
-              flex
-              h-[52px]
-              w-[52px]
-              shrink-0
-              items-center
-              justify-center
-              overflow-hidden
-
-              rounded-full
-
-              border
-              border-[#dec182]
-
-              bg-[radial-gradient(circle,#fffdf8_0%,#fff3d9_100%)]
-
-              p-[3px]
-
-              shadow-[0_5px_15px_rgba(96,57,18,0.10)]
-
-              sm:h-[60px]
-              sm:w-[60px]
-
-              md:h-[68px]
-              md:w-[68px]
-            "
-          >
-            <img
-              src={
-                currentDarshan?.image ||
-                "/images/mangala.jpg"
-              }
-              alt={
-                currentDarshan
-                  ? t(currentDarshan.nameKey)
-                  : "Temple"
-              }
-              className="
-                block
-                h-full
-                w-full
-
-                rounded-full
-
-                object-contain
-                object-center
-              "
+          {currentDarshan && (
+            <ProfileImage
+              src={currentDarshan.image}
+              alt={t(currentDarshan.nameKey)}
+              size="large"
             />
-          </div>
-        </header>
+          )}
 
-        {/* =================================================
-            MOBILE DIVIDER
-        ================================================= */}
-
-        <div
-          className="
-            mb-3
-            flex
-            h-[15px]
-            items-center
-            justify-center
-            gap-2
-
-            lg:hidden
-          "
-        >
-          <span
-            className="
-              h-px
-              w-[55px]
-
-              bg-gradient-to-r
-              from-transparent
-              to-[#d9b66b]
-
-              sm:w-[90px]
-
-              md:w-[120px]
-            "
-          />
-
-          <b className="text-[10px] text-[#c99435]">
-            ✦
-          </b>
-
-          <span
-            className="
-              h-px
-              w-[55px]
-
-              bg-gradient-to-l
-              from-transparent
-              to-[#d9b66b]
-
-              sm:w-[90px]
-
-              md:w-[120px]
-            "
-          />
         </div>
 
-        {/* =================================================
-            PREMIUM DESKTOP HEADER
-        ================================================= */}
+        {/* DESKTOP HEADER */}
 
-        <section
-          className="
-            relative
-            mb-5
-            hidden
-            min-h-[145px]
-            items-center
-            justify-between
-            gap-6
-            overflow-hidden
+        <section className="mb-8 hidden items-center justify-between rounded-3xl border border-[#e6d3ad] bg-white px-8 py-7 shadow-[0_10px_35px_rgba(79,43,14,0.07)] lg:flex">
 
-            rounded-[22px]
+          <div>
 
-            border
-            border-[#e6d2ad]
-
-            bg-[radial-gradient(circle_at_85%_20%,rgba(201,148,53,0.14),transparent_28%),linear-gradient(135deg,#fffdf8_0%,#fff8eb_48%,#fdf0dc_100%)]
-
-            px-8
-            py-6
-
-            shadow-[0_8px_28px_rgba(104,65,22,0.08)]
-
-            lg:flex
-
-            2xl:min-h-[155px]
-          "
-        >
-          {/* SUBTLE DECORATION */}
-
-          <div
-            className="
-              pointer-events-none
-              absolute
-              -right-12
-              -top-16
-
-              h-40
-              w-40
-
-              rounded-full
-
-              border
-              border-[#d8b66c]/20
-            "
-          />
-
-          <div
-            className="
-              pointer-events-none
-              absolute
-              -right-4
-              -top-8
-
-              h-24
-              w-24
-
-              rounded-full
-
-              border
-              border-[#d8b66c]/20
-            "
-          />
-
-          {/* LEFT CONTENT */}
-
-          <div className="relative z-10">
-
-            {/* LABEL */}
-
-            <span
-              className="
-                mb-2
-                inline-flex
-                items-center
-                gap-2
-
-                rounded-full
-
-                border
-                border-[#e5c98e]
-
-                bg-[#fffaf0]/80
-
-                px-3
-                py-1
-
-                text-[10px]
-                font-bold
-                uppercase
-                tracking-[1.8px]
-
-                text-[#b47a20]
-
-                shadow-[0_2px_8px_rgba(151,102,29,0.06)]
-              "
-            >
-              <span className="text-[#c99435]">
-                ✦
-              </span>
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#e6cf9d] bg-[#fffaf0] px-4 py-2 text-xs font-semibold uppercase tracking-[2px] text-[#b47a20]">
+              <span>✦</span>
 
               {t("darshan")}
 
-              <span className="text-[#c99435]">
-                ✦
-              </span>
-            </span>
+              <span>✦</span>
+            </div>
 
-            {/* TITLE */}
-
-            <h1
-              className="
-                m-0
-
-                font-serif
-                text-[34px]
-                font-bold
-                leading-tight
-
-                text-[#991919]
-
-                2xl:text-[38px]
-              "
-            >
-              {currentDarshan && (
-                <span className="text-[#c99435]">
-                  {t(currentDarshan.nameKey)}
-                </span>
-              )}
+            <h1 className="font-serif text-4xl font-bold text-[#991919]">
+              {currentDarshan
+                ? t(currentDarshan.nameKey)
+                : t("darshan")}
             </h1>
 
-            {/* DATE */}
-
-            <p
-              className="
-                mt-2
-                text-sm
-                text-[#82766b]
-              "
-            >
+            <p className="mt-2 text-sm text-[#857668]">
               {currentDate}
             </p>
 
-            {/* LIVE TIME */}
-
-            <div
-              className="
-                mt-3
-                inline-flex
-                items-center
-                gap-2
-
-                rounded-full
-
-                border
-                border-[#ead7b5]
-
-                bg-white/70
-
-                px-3
-                py-1.5
-
-                text-xs
-                font-semibold
-
-                text-[#6f5a46]
-
-                shadow-[0_2px_8px_rgba(91,53,19,0.05)]
-              "
-            >
-              <span
-                className="
-                  h-2
-                  w-2
-                  animate-pulse
-                  rounded-full
-                  bg-[#159b60]
-                "
-              />
+            <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#ead9bd] bg-[#fffaf0] px-4 py-2 text-sm font-medium text-[#6d5b49]">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
 
               {currentFormattedTime}
             </div>
+
           </div>
 
-          {/* DARSHAN IMAGE */}
-
-          <div
-            className="
-              relative
-              z-10
-
-              flex
-              h-[92px]
-              w-[92px]
-              shrink-0
-              items-center
-              justify-center
-              overflow-hidden
-
-              rounded-full
-
-              border
-              border-[#d8b56c]
-
-              bg-[radial-gradient(circle,#fffdf8_0%,#fff3d9_100%)]
-
-              p-[4px]
-
-              shadow-[0_8px_24px_rgba(130,82,20,0.14)]
-
-              2xl:h-[104px]
-              2xl:w-[104px]
-            "
-          >
-            <img
-              src={
-                currentDarshan?.image ||
-                "/images/mangala.jpg"
-              }
-              alt={
-                currentDarshan
-                  ? t(currentDarshan.nameKey)
-                  : "Temple"
-              }
-              className="
-                block
-                h-full
-                w-full
-
-                rounded-full
-
-                object-contain
-                object-center
-              "
+          {currentDarshan && (
+            <ProfileImage
+              src={currentDarshan.image}
+              alt={t(currentDarshan.nameKey)}
+              size="large"
             />
-          </div>
+          )}
+
         </section>
 
-        {/* =================================================
-            DARSHAN LIST
-        ================================================= */}
+        {/* TITLE */}
 
-        <section
-          className="
-            overflow-hidden
+        <div className="mb-5 flex items-center gap-4">
 
-            rounded-[17px]
+          <div className="h-px flex-1 bg-[#e3cfaa]" />
 
-            border
-            border-[#e5cfaa]
+          <div className="text-center">
 
-            bg-[#fffdf8]
+            <p className="font-serif text-lg font-semibold text-[#991919]">
+              {t("darshan")}
+            </p>
 
-            shadow-[0_8px_25px_rgba(79,43,14,0.08)]
+            <span className="text-xs text-[#b18a4d]">
+              Daily Timings
+            </span>
 
-            sm:rounded-[20px]
+          </div>
 
-            lg:grid
-            lg:grid-cols-2
-            lg:gap-4
-            lg:overflow-visible
-            lg:rounded-none
-            lg:border-0
-            lg:bg-transparent
-            lg:shadow-none
+          <div className="h-px flex-1 bg-[#e3cfaa]" />
 
-            2xl:gap-5
-          "
-        >
+        </div>
+
+        {/* DARSHAN CARDS */}
+
+        <section className="grid gap-4 md:grid-cols-2">
+
           {DARSHANS.map((darshan, index) => {
+
             const status = getStatus(
               index,
               currentTime,
@@ -877,379 +389,92 @@ export default function DarshanTimings() {
               status === "openNow";
 
             return (
-              <div
+              <article
                 key={darshan.nameKey}
-                className={`
-                  flex
-                  min-h-[82px]
-                  w-full
-                  items-center
-
-                  border-b
-                  border-[#ecdfca]
-
-                  px-2.5
-                  py-2
-
-                  transition-all
-                  duration-200
-
-                  last:border-b-0
-
-                  sm:min-h-[88px]
-                  sm:px-3
-                  sm:py-2.5
-
-                  md:min-h-[100px]
-                  md:px-4
-                  md:py-3
-
-                  lg:min-h-[118px]
-                  lg:rounded-2xl
-                  lg:border
-                  lg:border-[#eadbc5]
-                  lg:bg-[#fffdf8]
-                  lg:px-[18px]
-                  lg:py-4
-
-                  lg:shadow-[0_5px_18px_rgba(81,46,15,0.06)]
-
-                  lg:hover:-translate-y-[3px]
-                  lg:hover:border-[#d9bc83]
-                  lg:hover:shadow-[0_11px_28px_rgba(81,46,15,0.10)]
-
-                  2xl:min-h-[128px]
-                  2xl:px-[22px]
-                  2xl:py-[18px]
-
-                  ${
-                    isCurrent
-                      ? `
-                        bg-gradient-to-r
-                        from-[#effaf4]
-                        to-[#fffdf8]
-
-                        lg:border-[#b9dec9]
-                        lg:from-[#edf9f2]
-                        lg:to-[#fffdf8]
-                      `
-                      : ""
-                  }
-                `}
+                className={`group flex items-center gap-4 rounded-2xl border bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${
+                  isCurrent
+                    ? "border-emerald-200 bg-gradient-to-r from-emerald-50/70 to-white"
+                    : "border-[#eadcc5]"
+                }`}
               >
-                {/* IMAGE */}
 
-                <div
-                  className="
-                    flex
-                    w-[50px]
-                    shrink-0
-                    justify-center
+                {/* PROFILE STYLE IMAGE */}
 
-                    sm:w-[58px]
-
-                    md:w-[68px]
-
-                    lg:w-[78px]
-                  "
-                >
-                  <div
-                    className="
-                      flex
-                      h-[42px]
-                      w-[42px]
-                      shrink-0
-                      items-center
-                      justify-center
-                      overflow-hidden
-
-                      rounded-[11px]
-
-                      border
-                      border-[#d3ad62]
-
-                      bg-[#fff8e9]
-
-                      p-[3px]
-
-                      shadow-[0_3px_9px_rgba(109,65,16,0.10)]
-
-                      sm:h-[50px]
-                      sm:w-[50px]
-                      sm:rounded-[13px]
-
-                      md:h-[58px]
-                      md:w-[58px]
-                      md:rounded-[15px]
-
-                      lg:h-[62px]
-                      lg:w-[62px]
-                      lg:rounded-2xl
-
-                      2xl:h-[68px]
-                      2xl:w-[68px]
-                    "
-                  >
-                    <img
-                      src={darshan.image}
-                      alt={t(darshan.nameKey)}
-                      className="
-                        block
-                        h-full
-                        w-full
-
-                        rounded-[8px]
-
-                        object-contain
-                        object-center
-                      "
-                    />
-                  </div>
-                </div>
+                <ProfileImage
+                  src={darshan.image}
+                  alt={t(darshan.nameKey)}
+                />
 
                 {/* DETAILS */}
 
-                <div
-                  className="
-                    min-w-0
-                    flex-1
-                    pl-2
+                <div className="min-w-0 flex-1">
 
-                    sm:pl-2.5
+                  <div className="mb-1 flex items-center gap-2">
 
-                    md:pl-3
+                    <span className="text-[11px] font-semibold tracking-wider text-[#c99435]">
+                      {String(index + 1).padStart(
+                        2,
+                        "0",
+                      )}
+                    </span>
 
-                    lg:pl-[10px]
-                  "
-                >
-                  <span
-                    className="
-                      mb-0.5
-                      block
-
-                      font-serif
-                      text-[8px]
-                      tracking-[1px]
-
-                      text-[#c99435]
-
-                      sm:text-[9px]
-
-                      md:text-[10px]
-                    "
-                  >
-                    {String(index + 1).padStart(
-                      2,
-                      "0",
+                    {isCurrent && (
+                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                        LIVE
+                      </span>
                     )}
-                  </span>
 
-                  <h2
-                    className="
-                      m-0
-                      truncate
+                  </div>
 
-                      font-serif
-                      text-[13px]
-                      font-bold
-
-                      text-[#40342c]
-
-                      sm:text-[15px]
-
-                      md:text-lg
-
-                      lg:text-xl
-
-                      2xl:text-[22px]
-                    "
-                  >
+                  <h2 className="truncate font-serif text-lg font-bold text-[#40342c]">
                     {t(darshan.nameKey)}
                   </h2>
 
-                  <small
-                    className="
-                      mt-1
-                      block
-                      truncate
+                  <p className="mt-1 text-xs text-[#938476]">
+                    {status === "openNow"
+                      ? t("darshanLiveNow")
+                      : status === "completed"
+                        ? t("darshanCompleted")
+                        : t("darshanUpcoming")}
+                  </p>
 
-                      text-[8px]
-                      text-[#9a8c7d]
-
-                      sm:text-[9px]
-
-                      md:text-[11px]
-
-                      lg:text-[11px]
-
-                      2xl:text-xs
-                    "
-                  >
-                    {getStatusDescription(
-                      status,
-                      t,
-                    )}
-                  </small>
                 </div>
 
-                {/* TIME + STATUS */}
+                {/* TIME */}
 
-                <div
-                  className="
-                    flex
-                    w-[78px]
-                    shrink-0
-                    flex-col
-                    items-start
-                    gap-1
+                <div className="flex shrink-0 flex-col items-end gap-2">
 
-                    sm:w-[88px]
-
-                    md:w-[105px]
-                    md:gap-1.5
-
-                    lg:w-[115px]
-                    lg:items-end
-                    lg:gap-2
-
-                    2xl:w-[130px]
-                  "
-                >
-                  <strong
-                    className="
-                      whitespace-nowrap
-
-                      text-[10px]
-                      font-bold
-
-                      text-[#463a32]
-
-                      sm:text-xs
-
-                      md:text-sm
-
-                      lg:text-sm
-
-                      2xl:text-[15px]
-                    "
-                  >
+                  <time className="text-sm font-bold text-[#40342c]">
                     {darshan.time}
-                  </strong>
+                  </time>
 
-                  <span
-                    className={`
-                      whitespace-nowrap
+                  <StatusBadge
+                    status={status}
+                    t={t}
+                  />
 
-                      rounded-md
-
-                      px-1.5
-                      py-1
-
-                      text-[7px]
-                      font-bold
-
-                      sm:px-2
-                      sm:text-[9px]
-
-                      md:px-2.5
-                      md:py-1.5
-                      md:text-[10px]
-
-                      lg:rounded-[7px]
-                      lg:text-[10px]
-
-                      2xl:text-[11px]
-
-                      ${
-                        status === "completed"
-                          ? `
-                            border
-                            border-[#d8ecdf]
-                            bg-[#eef7f1]
-                            text-[#4e9873]
-                          `
-                          : status === "openNow"
-                            ? `
-                              bg-gradient-to-br
-                              from-[#159b60]
-                              to-[#087d48]
-
-                              text-white
-
-                              shadow-[0_3px_7px_rgba(11,125,72,0.20)]
-                            `
-                            : `
-                              border
-                              border-[#f5ddbc]
-                              bg-[#fff0d9]
-                              text-[#cf813d]
-                            `
-                      }
-                    `}
-                  >
-                    {getStatusLabel(status, t)}
-                  </span>
                 </div>
-              </div>
+
+              </article>
             );
           })}
+
         </section>
 
-        {/* =================================================
-            BOTTOM DECORATION
-        ================================================= */}
+        {/* FOOTER */}
 
-        <div
-          className="
-            flex
-            h-12
-            items-center
-            justify-center
-            gap-2.5
+        <div className="mt-10 flex items-center justify-center gap-4">
 
-            text-[#c99435]
+          <div className="h-px w-20 bg-gradient-to-r from-transparent to-[#d8b66c]" />
 
-            lg:h-16
-          "
-        >
-          <span
-            className="
-              h-px
-              w-14
-
-              bg-gradient-to-r
-              from-transparent
-              to-[#d8b66c]
-
-              lg:w-24
-            "
-          />
-
-          <strong
-            className="
-              font-serif
-              text-sm
-              font-normal
-
-              lg:text-lg
-            "
-          >
+          <span className="font-serif text-lg text-[#c99435]">
             ॐ
-          </strong>
+          </span>
 
-          <span
-            className="
-              h-px
-              w-14
+          <div className="h-px w-20 bg-gradient-to-l from-transparent to-[#d8b66c]" />
 
-              bg-gradient-to-l
-              from-transparent
-              to-[#d8b66c]
-
-              lg:w-24
-            "
-          />
         </div>
+
       </div>
     </main>
   );

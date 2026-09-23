@@ -1,200 +1,543 @@
 "use client";
 
-import {
-  useMemo,
-} from "react";
-
-import {
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function DonationSuccess() {
   const router = useRouter();
+  const params = useSearchParams();
 
-  const params =
-    useSearchParams();
+  const seva = params.get("seva") || "Go Seva";
+  const amount = params.get("amount") || "1001";
+  const type = params.get("type") || "one-time";
+  const frequency = params.get("frequency") || "monthly";
 
-  const seva =
-    params.get("seva") ||
-    "Go Seva";
+  const transactionId = useMemo(() => {
+    return "DON" + Math.floor(100000 + Math.random() * 900000);
+  }, []);
 
-  const amount =
-    params.get("amount") ||
-    "1001";
-
-  const type =
-    params.get("type") ||
-    "one-time";
-
-  const frequency =
-    params.get(
-      "frequency"
-    ) || "monthly";
-
-  const transactionId =
-    useMemo(() => {
-      return (
-        "DON" +
-        Math.floor(
-          100000 +
-            Math.random() *
-              900000
-        )
-      );
-    }, []);
-
-  const formattedAmount =
-    Number(
-      amount || 0
-    ).toLocaleString(
-      "en-IN"
-    );
+  const formattedAmount = Number(amount || 0).toLocaleString("en-IN");
 
   const formattedFrequency =
-    frequency
-      .charAt(0)
-      .toUpperCase() +
-    frequency.slice(1);
+    frequency.charAt(0).toUpperCase() + frequency.slice(1);
 
   const handleReceipt = () => {
-    alert(
-      "Receipt download will be connected to the backend."
-    );
+    alert("Receipt download will be connected to the backend.");
   };
 
-  const handleShare =
-    async () => {
-      const shareData = {
-        title:
-          "Seva Contribution",
-
-        text: `I contributed ₹${formattedAmount} towards ${seva}. Jai Shree Krishna 🙏`,
-      };
-
-      if (
-        navigator.share
-      ) {
-        try {
-          await navigator.share(
-            shareData
-          );
-        } catch {
-          // User cancelled share
-        }
-      } else {
-        alert(
-          "Sharing is not supported on this browser."
-        );
-      }
+  const handleShare = async () => {
+    const shareData = {
+      title: "Seva Contribution",
+      text: `I contributed ₹${formattedAmount} towards ${seva}. Jai Shree Krishna 🙏`,
     };
 
-  return (
-    <main className="successScreen">
-      {/* DECORATION */}
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch {
+        // User cancelled share
+      }
+    } else {
+      alert("Sharing is not supported on this browser.");
+    }
+  };
 
-      <div className="glow glowOne" />
-      <div className="glow glowTwo" />
+  return (
+    <main
+      className="
+        relative flex min-h-[100dvh] w-full
+        items-center justify-center
+        overflow-hidden
+        px-5 pt-5
+        pb-[calc(20px+env(safe-area-inset-bottom))]
+        text-[#4b4039]
+        bg-[radial-gradient(circle_at_50%_0%,#ffffff_0%,#fffaf0_42%,#f6ead5_100%)]
+
+        max-[359px]:p-[14px]
+
+        min-[430px]:max-[599px]:p-7
+
+        min-[600px]:max-[1023px]:px-6
+        min-[600px]:max-[1023px]:py-[50px]
+
+        min-[1024px]:min-h-screen
+        min-[1024px]:px-10
+        min-[1024px]:py-[65px]
+        min-[1024px]:bg-[radial-gradient(circle_at_top_left,rgba(25,168,120,0.08),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(201,148,53,0.13),transparent_30%),#fff9ed]
+      "
+    >
+      {/* BACKGROUND GLOW */}
+
+      <div
+        className="
+          pointer-events-none
+          absolute rounded-full
+          h-[160px] w-[160px]
+          -top-[70px] -right-[65px]
+          bg-[rgba(25,168,120,0.08)]
+
+          min-[1024px]:h-[290px]
+          min-[1024px]:w-[290px]
+          min-[1024px]:-top-[130px]
+          min-[1024px]:-right-[100px]
+        "
+      />
+
+      <div
+        className="
+          pointer-events-none
+          absolute rounded-full
+          h-[170px] w-[170px]
+          -left-[85px] -bottom-[80px]
+          bg-[rgba(201,148,53,0.09)]
+
+          min-[1024px]:h-[280px]
+          min-[1024px]:w-[280px]
+          min-[1024px]:-left-[130px]
+          min-[1024px]:-bottom-[120px]
+        "
+      />
 
       {/* SUCCESS CARD */}
 
-      <section className="successCard">
-        {/* ICON */}
+      <section
+        className="
+          relative z-[2]
+          w-full max-w-[390px]
+          rounded-2xl
+          border border-[#eadbc5]
+          bg-[#fffdf8]
+          px-[18px] py-[25px]
+          text-center
+          shadow-[0_10px_30px_rgba(79,43,14,0.07)]
 
-        <div className="check">
+          max-[359px]:rounded-[14px]
+          max-[359px]:px-[14px]
+          max-[359px]:py-[22px]
+
+          min-[430px]:max-[599px]:max-w-[430px]
+          min-[430px]:max-[599px]:rounded-[19px]
+          min-[430px]:max-[599px]:px-6
+          min-[430px]:max-[599px]:py-8
+
+          min-[600px]:max-[1023px]:max-w-[520px]
+          min-[600px]:max-[1023px]:rounded-[23px]
+          min-[600px]:max-[1023px]:px-[42px]
+          min-[600px]:max-[1023px]:pt-[42px]
+          min-[600px]:max-[1023px]:pb-[38px]
+          min-[600px]:max-[1023px]:shadow-[0_18px_45px_rgba(79,43,14,0.09)]
+
+          min-[1024px]:max-w-[610px]
+          min-[1024px]:rounded-[28px]
+          min-[1024px]:px-[55px]
+          min-[1024px]:pt-[52px]
+          min-[1024px]:pb-[46px]
+          min-[1024px]:bg-[rgba(255,253,248,0.98)]
+          min-[1024px]:shadow-[0_24px_65px_rgba(79,43,14,0.11)]
+
+          min-[1440px]:max-w-[660px]
+          min-[1440px]:px-[62px]
+          min-[1440px]:pt-[58px]
+          min-[1440px]:pb-[52px]
+        "
+      >
+        {/* CHECK ICON */}
+
+        <div
+          className="
+            mx-auto mb-3
+            grid h-[72px] w-[72px]
+            place-items-center
+            rounded-full
+            bg-[linear-gradient(145deg,#21ba86,#14895f)]
+            text-[42px] font-bold
+            text-white
+            shadow-[0_8px_20px_rgba(25,168,120,0.2)]
+
+            max-[359px]:mb-[10px]
+            max-[359px]:h-[62px]
+            max-[359px]:w-[62px]
+            max-[359px]:text-[36px]
+
+            max-[599px]:max-[650px]:h-[56px]
+
+            min-[430px]:max-[599px]:h-20
+            min-[430px]:max-[599px]:w-20
+            min-[430px]:max-[599px]:text-[46px]
+
+            min-[600px]:max-[1023px]:mb-4
+            min-[600px]:max-[1023px]:h-[88px]
+            min-[600px]:max-[1023px]:w-[88px]
+            min-[600px]:max-[1023px]:text-[51px]
+
+            min-[1024px]:mb-[18px]
+            min-[1024px]:h-[98px]
+            min-[1024px]:w-[98px]
+            min-[1024px]:text-[56px]
+            min-[1024px]:shadow-[0_12px_28px_rgba(25,168,120,0.22)]
+
+            min-[1440px]:h-[106px]
+            min-[1440px]:w-[106px]
+            min-[1440px]:text-[61px]
+          "
+        >
           ✓
         </div>
 
-        {/* TITLE */}
+        {/* STATUS */}
 
-        <span className="statusLabel">
+        <span
+          className="
+            mb-[6px]
+            inline-block
+            rounded-full
+            border border-[#cfe8dd]
+            bg-[#edf8f3]
+            px-[10px] py-[5px]
+            text-[9px]
+            font-bold
+            uppercase
+            tracking-[0.7px]
+            text-[#248463]
+
+            max-[359px]:text-[8px]
+
+            min-[600px]:max-[1023px]:mb-2
+            min-[600px]:max-[1023px]:px-3
+            min-[600px]:max-[1023px]:py-1.5
+
+            min-[1024px]:mb-[9px]
+            min-[1024px]:px-[13px]
+            min-[1024px]:py-1.5
+            min-[1024px]:text-[10px]
+          "
+        >
           Payment Successful
         </span>
 
-        <h1>
-          {type === "auto"
-            ? "Auto Seva Started!"
-            : "Seva Successful!"}
+        {/* TITLE */}
+
+        <h1
+          className="
+            m-0
+            font-[Georgia,'Times_New_Roman',serif]
+            text-[21px]
+            leading-[1.2]
+            text-[#27634e]
+
+            max-[359px]:text-[19px]
+
+            min-[430px]:max-[599px]:text-[25px]
+
+            min-[600px]:max-[1023px]:text-[30px]
+
+            min-[1024px]:text-[36px]
+
+            min-[1440px]:text-[40px]
+          "
+        >
+          {type === "auto" ? "Auto Seva Started!" : "Seva Successful!"}
         </h1>
 
-        <h2>
+        <h2
+          className="
+            mt-[7px]
+            mb-0
+            font-[Georgia,'Times_New_Roman',serif]
+            text-[15px]
+            text-[#a71919]
+
+            max-[359px]:text-[14px]
+
+            min-[430px]:max-[599px]:text-[16px]
+
+            min-[600px]:max-[1023px]:mt-[9px]
+            min-[600px]:max-[1023px]:text-[17px]
+
+            min-[1024px]:mt-[10px]
+            min-[1024px]:text-[19px]
+
+            min-[1440px]:text-[20px]
+          "
+        >
           Jai Shree Krishna
         </h2>
 
-        {/* DECORATION */}
+        {/* DIVIDER */}
 
-        <div className="divider">
-          <span />
-          <b>✦</b>
-          <span />
+        <div
+          className="
+            my-3
+            flex items-center justify-center gap-2
+
+            max-[599px]:max-[650px]:my-2
+
+            min-[600px]:max-[1023px]:my-[17px]
+
+            min-[1024px]:my-5
+          "
+        >
+          <span
+            className="
+              h-px w-[45px]
+              bg-[linear-gradient(to_right,transparent,#d5b66d)]
+
+              min-[600px]:max-[1023px]:w-[70px]
+
+              min-[1024px]:w-[90px]
+            "
+          />
+
+          <b
+            className="
+              text-[9px]
+              text-[#c99435]
+
+              min-[1024px]:text-[11px]
+            "
+          >
+            ✦
+          </b>
+
+          <span
+            className="
+              h-px w-[45px]
+              bg-[linear-gradient(to_left,transparent,#d5b66d)]
+
+              min-[600px]:max-[1023px]:w-[70px]
+
+              min-[1024px]:w-[90px]
+            "
+          />
         </div>
 
         {/* THANKS */}
 
-        <p className="thanks">
+        <p
+          className="
+            mx-auto
+            mb-[17px]
+            max-w-[300px]
+            text-[12px]
+            leading-[1.5]
+            text-[#776d65]
+
+            max-[359px]:mb-[14px]
+            max-[359px]:text-[11px]
+
+            min-[430px]:max-[599px]:text-[13px]
+
+            min-[600px]:max-[1023px]:mb-[23px]
+            min-[600px]:max-[1023px]:max-w-[380px]
+            min-[600px]:max-[1023px]:text-[14px]
+
+            min-[1024px]:mb-7
+            min-[1024px]:max-w-[420px]
+            min-[1024px]:text-[15px]
+            min-[1024px]:leading-[1.6]
+
+            min-[1440px]:text-[16px]
+          "
+        >
           Thank you for your
+          <br />
           generous contribution.
         </p>
 
         {/* DETAILS */}
 
-        <div className="details">
-          <div>
-            <span>
-              Seva
-            </span>
+        <div
+          className="
+            rounded-[10px]
+            border border-[#f0dfc4]
+            bg-[#fff8eb]
+            p-3
+            text-left
 
-            <b>
+            max-[359px]:p-[10px]
+
+            min-[430px]:max-[599px]:p-[15px]
+
+            min-[600px]:max-[1023px]:rounded-[13px]
+            min-[600px]:max-[1023px]:px-[18px]
+            min-[600px]:max-[1023px]:py-4
+
+            min-[1024px]:rounded-[14px]
+            min-[1024px]:px-[22px]
+            min-[1024px]:py-[19px]
+          "
+        >
+          {/* SEVA */}
+
+          <div
+            className="
+              flex items-center justify-between
+              gap-3
+              border-b border-[#eee0cc]
+              py-2
+              text-[11px]
+
+              max-[359px]:text-[10px]
+
+              min-[430px]:max-[599px]:py-[9px]
+              min-[430px]:max-[599px]:text-[12px]
+
+              min-[600px]:max-[1023px]:py-[10px]
+              min-[600px]:max-[1023px]:text-[13px]
+
+              min-[1024px]:py-[11px]
+              min-[1024px]:text-[13px]
+
+              min-[1440px]:text-[14px]
+            "
+          >
+            <span className="shrink-0 text-[#8a8077]">Seva</span>
+
+            <b className="overflow-wrap-anywhere text-right text-[#433932]">
               {seva}
             </b>
           </div>
 
-          <div>
-            <span>
-              Amount
-            </span>
+          {/* AMOUNT */}
 
-            <b className="amount">
-              ₹
-              {
-                formattedAmount
-              }
+          <div
+            className="
+              flex items-center justify-between
+              gap-3
+              border-b border-[#eee0cc]
+              py-2
+              text-[11px]
+
+              max-[359px]:text-[10px]
+
+              min-[430px]:max-[599px]:py-[9px]
+              min-[430px]:max-[599px]:text-[12px]
+
+              min-[600px]:max-[1023px]:py-[10px]
+              min-[600px]:max-[1023px]:text-[13px]
+
+              min-[1024px]:py-[11px]
+              min-[1024px]:text-[13px]
+
+              min-[1440px]:text-[14px]
+            "
+          >
+            <span className="shrink-0 text-[#8a8077]">Amount</span>
+
+            <b
+              className="
+                overflow-wrap-anywhere
+                text-right
+                text-[13px]
+                text-[#a71919]
+
+                min-[600px]:max-[1023px]:text-[15px]
+
+                min-[1024px]:text-[16px]
+              "
+            >
+              ₹{formattedAmount}
             </b>
           </div>
 
-          {type ===
-            "auto" && (
-            <div>
-              <span>
-                Frequency
-              </span>
+          {/* FREQUENCY */}
 
-              <b>
-                {
-                  formattedFrequency
-                }
+          {type === "auto" && (
+            <div
+              className="
+                flex items-center justify-between
+                gap-3
+                border-b border-[#eee0cc]
+                py-2
+                text-[11px]
+
+                max-[359px]:text-[10px]
+
+                min-[430px]:max-[599px]:py-[9px]
+                min-[430px]:max-[599px]:text-[12px]
+
+                min-[600px]:max-[1023px]:py-[10px]
+                min-[600px]:max-[1023px]:text-[13px]
+
+                min-[1024px]:py-[11px]
+                min-[1024px]:text-[13px]
+
+                min-[1440px]:text-[14px]
+              "
+            >
+              <span className="shrink-0 text-[#8a8077]">Frequency</span>
+
+              <b className="overflow-wrap-anywhere text-right text-[#433932]">
+                {formattedFrequency}
               </b>
             </div>
           )}
 
-          <div>
-            <span>
-              Transaction ID
-            </span>
+          {/* TRANSACTION ID */}
 
-            <b className="transaction">
-              {
-                transactionId
-              }
+          <div
+            className="
+              flex items-center justify-between
+              gap-3
+              border-b border-[#eee0cc]
+              py-2
+              text-[11px]
+
+              max-[359px]:text-[10px]
+
+              min-[430px]:max-[599px]:py-[9px]
+              min-[430px]:max-[599px]:text-[12px]
+
+              min-[600px]:max-[1023px]:py-[10px]
+              min-[600px]:max-[1023px]:text-[13px]
+
+              min-[1024px]:py-[11px]
+              min-[1024px]:text-[13px]
+
+              min-[1440px]:text-[14px]
+            "
+          >
+            <span className="shrink-0 text-[#8a8077]">Transaction ID</span>
+
+            <b
+              className="
+                overflow-wrap-anywhere
+                text-right
+                font-mono
+                tracking-[0.4px]
+                text-[#433932]
+              "
+            >
+              {transactionId}
             </b>
           </div>
 
-          <div>
-            <span>
-              Date
-            </span>
+          {/* DATE */}
 
-            <b>
+          <div
+            className="
+              flex items-center justify-between
+              gap-3
+              py-2
+              text-[11px]
+
+              max-[359px]:text-[10px]
+
+              min-[430px]:max-[599px]:py-[9px]
+              min-[430px]:max-[599px]:text-[12px]
+
+              min-[600px]:max-[1023px]:py-[10px]
+              min-[600px]:max-[1023px]:text-[13px]
+
+              min-[1024px]:py-[11px]
+              min-[1024px]:text-[13px]
+
+              min-[1440px]:text-[14px]
+            "
+          >
+            <span className="shrink-0 text-[#8a8077]">Date</span>
+
+            <b className="overflow-wrap-anywhere text-right text-[#433932]">
               14 Sep 2026
             </b>
           </div>
@@ -202,37 +545,129 @@ export default function DonationSuccess() {
 
         {/* ACTIONS */}
 
-        <div className="actions">
+        <div
+          className="
+            w-full
+
+            min-[1024px]:mx-auto
+            min-[1024px]:max-w-[420px]
+
+            min-[1440px]:max-w-[450px]
+          "
+        >
+          {/* RECEIPT */}
+
           <button
             type="button"
-            className="receipt"
-            onClick={
-              handleReceipt
-            }
+            onClick={handleReceipt}
+            className="
+              mt-3
+              inline-flex h-[45px] w-full
+              items-center justify-center
+              gap-2
+              rounded-[9px]
+              border-0
+              bg-[#a71919]
+              text-[13px] font-bold
+              text-white
+              shadow-[0_6px_15px_rgba(113,17,17,0.13)]
+              transition-all duration-200 ease-in-out
+              active:scale-[0.985]
+
+              max-[359px]:mt-[9px]
+              max-[359px]:h-[43px]
+              max-[359px]:text-[12px]
+
+              min-[430px]:max-[599px]:h-[49px]
+              min-[430px]:max-[599px]:text-[14px]
+
+              min-[600px]:max-[1023px]:h-[52px]
+              min-[600px]:max-[1023px]:rounded-[11px]
+              min-[600px]:max-[1023px]:text-[14px]
+
+              min-[1024px]:mt-6
+              min-[1024px]:h-[54px]
+              min-[1024px]:rounded-[12px]
+              min-[1024px]:text-[15px]
+              min-[1024px]:hover:-translate-y-px
+              min-[1024px]:hover:bg-[#7f1111]
+              min-[1024px]:hover:shadow-[0_9px_22px_rgba(113,17,17,0.18)]
+
+              min-[1440px]:h-[57px]
+              min-[1440px]:text-[16px]
+            "
           >
-            <span>⇩</span>
+            <span className="text-[17px]">⇩</span>
             Download Receipt
           </button>
 
-          <button
-            type="button"
-            className="share"
-            onClick={
-              handleShare
-            }
-          >
-            <span>↗</span>
-            Share
-          </button>
+          {/* SHARE */}
 
           <button
             type="button"
-            className="home"
-            onClick={() =>
-              router.push(
-                "/dashboard"
-              )
-            }
+            onClick={handleShare}
+            className="
+              mt-[9px]
+              inline-flex h-[45px] w-full
+              items-center justify-center
+              gap-[7px]
+              rounded-[9px]
+              border border-[#eadbc5]
+              bg-white
+              text-[13px] font-bold
+              text-[#a71919]
+              transition-all duration-200 ease-in-out
+              active:scale-[0.985]
+
+              max-[359px]:h-[43px]
+              max-[359px]:text-[12px]
+
+              min-[430px]:max-[599px]:h-[49px]
+              min-[430px]:max-[599px]:text-[14px]
+
+              min-[600px]:max-[1023px]:h-[52px]
+              min-[600px]:max-[1023px]:rounded-[11px]
+              min-[600px]:max-[1023px]:text-[14px]
+
+              min-[1024px]:mt-[10px]
+              min-[1024px]:rounded-[12px]
+              min-[1024px]:text-[14px]
+              min-[1024px]:hover:-translate-y-px
+              min-[1024px]:hover:border-[#a71919]
+              min-[1024px]:hover:bg-[#fff5ed]
+
+              min-[1440px]:text-[14px]
+            "
+          >
+            <span className="text-[16px]">↗</span>
+            Share
+          </button>
+
+          {/* HOME */}
+
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard")}
+            className="
+              mt-[5px]
+              h-[42px] w-full
+              border-0
+              bg-transparent
+              text-[12px]
+              font-bold
+              text-[#776d65]
+              transition-colors duration-200
+              hover:text-[#a71919]
+
+              max-[359px]:h-[38px]
+              max-[359px]:text-[11px]
+
+              min-[600px]:max-[1023px]:h-[43px]
+              min-[600px]:max-[1023px]:text-[13px]
+
+              min-[1024px]:h-[44px]
+              min-[1024px]:text-[13px]
+            "
           >
             ← Back to Home
           </button>
@@ -240,1152 +675,25 @@ export default function DonationSuccess() {
 
         {/* SECURE */}
 
-        <div className="secure">
+        <div
+          className="
+            mt-[10px]
+            text-[9px]
+            font-semibold
+            text-[#9b762f]
+
+            min-[600px]:max-[1023px]:mt-[14px]
+            min-[600px]:max-[1023px]:text-[10px]
+
+            min-[1024px]:mt-[17px]
+            min-[1024px]:text-[10px]
+          "
+        >
           🔒 Your payment was
+          <br className="min-[430px]:hidden" />
           processed securely
         </div>
       </section>
-
-      <style jsx global>{`
-        /* ==========================================
-           SCREEN
-        ========================================== */
-
-        .successScreen {
-          position: relative;
-
-          width: 100%;
-          min-height:
-            100dvh;
-
-          display: flex;
-
-          align-items:
-            center;
-
-          justify-content:
-            center;
-
-          padding:
-            20px
-            20px
-            calc(
-              20px +
-              env(
-                safe-area-inset-bottom
-              )
-            );
-
-          overflow: hidden;
-
-          background:
-            radial-gradient(
-              circle at 50% 0%,
-              #ffffff 0%,
-              #fffaf0 42%,
-              #f6ead5 100%
-            );
-
-          color:
-            #4b4039;
-        }
-
-        /* ==========================================
-           BACKGROUND GLOW
-        ========================================== */
-
-        .glow {
-          position:
-            absolute;
-
-          border-radius:
-            50%;
-
-          pointer-events:
-            none;
-        }
-
-        .glowOne {
-          width: 160px;
-          height: 160px;
-
-          top: -70px;
-          right: -65px;
-
-          background:
-            rgba(
-              25,
-              168,
-              120,
-              0.08
-            );
-        }
-
-        .glowTwo {
-          width: 170px;
-          height: 170px;
-
-          left: -85px;
-          bottom: -80px;
-
-          background:
-            rgba(
-              201,
-              148,
-              53,
-              0.09
-            );
-        }
-
-        /* ==========================================
-           CARD
-        ========================================== */
-
-        .successCard {
-          position:
-            relative;
-
-          z-index: 2;
-
-          width: 100%;
-
-          max-width:
-            390px;
-
-          padding:
-            25px 18px;
-
-          border:
-            1px solid
-            #eadbc5;
-
-          border-radius:
-            16px;
-
-          background:
-            #fffdf8;
-
-          text-align:
-            center;
-
-          box-shadow:
-            0 10px 30px
-            rgba(
-              79,
-              43,
-              14,
-              0.07
-            );
-        }
-
-        /* ==========================================
-           CHECK
-        ========================================== */
-
-        .check {
-          width: 72px;
-          height: 72px;
-
-          display: grid;
-
-          place-items:
-            center;
-
-          margin:
-            0 auto 12px;
-
-          border-radius:
-            50%;
-
-          background:
-            linear-gradient(
-              145deg,
-              #21ba86,
-              #14895f
-            );
-
-          color: white;
-
-          font-size: 42px;
-
-          font-weight: 700;
-
-          box-shadow:
-            0 8px 20px
-            rgba(
-              25,
-              168,
-              120,
-              0.2
-            );
-        }
-
-        /* ==========================================
-           STATUS
-        ========================================== */
-
-        .statusLabel {
-          display:
-            inline-block;
-
-          margin-bottom:
-            6px;
-
-          padding:
-            5px 10px;
-
-          border:
-            1px solid
-            #cfe8dd;
-
-          border-radius:
-            999px;
-
-          background:
-            #edf8f3;
-
-          color:
-            #248463;
-
-          font-size: 9px;
-
-          font-weight: 700;
-
-          letter-spacing:
-            0.7px;
-
-          text-transform:
-            uppercase;
-        }
-
-        /* ==========================================
-           TITLES
-        ========================================== */
-
-        .successCard h1 {
-          margin: 0;
-
-          color: #27634e;
-
-          font-family:
-            Georgia,
-            "Times New Roman",
-            serif;
-
-          font-size: 21px;
-
-          line-height: 1.2;
-        }
-
-        .successCard h2 {
-          margin:
-            7px 0 0;
-
-          color: #a71919;
-
-          font-family:
-            Georgia,
-            "Times New Roman",
-            serif;
-
-          font-size: 15px;
-        }
-
-        /* ==========================================
-           DIVIDER
-        ========================================== */
-
-        .divider {
-          display: flex;
-
-          align-items:
-            center;
-
-          justify-content:
-            center;
-
-          gap: 8px;
-
-          margin:
-            12px 0;
-        }
-
-        .divider span {
-          width: 45px;
-          height: 1px;
-
-          background:
-            linear-gradient(
-              to right,
-              transparent,
-              #d5b66d
-            );
-        }
-
-        .divider
-          span:last-child {
-          background:
-            linear-gradient(
-              to left,
-              transparent,
-              #d5b66d
-            );
-        }
-
-        .divider b {
-          color: #c99435;
-
-          font-size: 9px;
-        }
-
-        /* ==========================================
-           THANKS
-        ========================================== */
-
-        .thanks {
-          max-width:
-            300px;
-
-          margin:
-            0 auto 17px;
-
-          color: #776d65;
-
-          font-size: 12px;
-
-          line-height: 1.5;
-        }
-
-        /* ==========================================
-           DETAILS
-        ========================================== */
-
-        .details {
-          padding:
-            12px;
-
-          border:
-            1px solid
-            #f0dfc4;
-
-          border-radius:
-            10px;
-
-          background:
-            #fff8eb;
-
-          text-align: left;
-        }
-
-        .details div {
-          display: flex;
-
-          align-items:
-            center;
-
-          justify-content:
-            space-between;
-
-          gap: 12px;
-
-          padding:
-            8px 0;
-
-          border-bottom:
-            1px solid
-            #eee0cc;
-
-          font-size: 11px;
-        }
-
-        .details
-          div:last-child {
-          border-bottom: 0;
-        }
-
-        .details span {
-          color: #8a8077;
-
-          flex-shrink: 0;
-        }
-
-        .details b {
-          color: #433932;
-
-          text-align: right;
-
-          overflow-wrap:
-            anywhere;
-        }
-
-        .details .amount {
-          color:
-            #a71919;
-
-          font-size: 13px;
-        }
-
-        .transaction {
-          font-family:
-            monospace;
-
-          letter-spacing:
-            0.4px;
-        }
-
-        /* ==========================================
-           ACTIONS
-        ========================================== */
-
-        .actions {
-          width: 100%;
-        }
-
-        .receipt,
-        .share,
-        .home {
-          width: 100%;
-
-          border-radius:
-            9px;
-
-          font-weight: 700;
-
-          transition:
-            transform
-              0.18s ease,
-            background
-              0.18s ease,
-            border-color
-              0.18s ease,
-            color
-              0.18s ease;
-        }
-
-        .receipt {
-          height: 45px;
-
-          display:
-            inline-flex;
-
-          align-items:
-            center;
-
-          justify-content:
-            center;
-
-          gap: 8px;
-
-          margin-top:
-            12px;
-
-          border: 0;
-
-          background:
-            #a71919;
-
-          color: white;
-
-          font-size: 13px;
-
-          box-shadow:
-            0 6px 15px
-            rgba(
-              113,
-              17,
-              17,
-              0.13
-            );
-        }
-
-        .receipt span {
-          font-size: 17px;
-        }
-
-        .share {
-          height: 45px;
-
-          display:
-            inline-flex;
-
-          align-items:
-            center;
-
-          justify-content:
-            center;
-
-          gap: 7px;
-
-          margin-top:
-            9px;
-
-          border:
-            1px solid
-            #eadbc5;
-
-          background: white;
-
-          color: #a71919;
-
-          font-size: 13px;
-        }
-
-        .share span {
-          font-size: 16px;
-        }
-
-        .home {
-          height: 42px;
-
-          margin-top:
-            5px;
-
-          border: 0;
-
-          background:
-            transparent;
-
-          color: #776d65;
-
-          font-size: 12px;
-        }
-
-        .receipt:active,
-        .share:active {
-          transform:
-            scale(0.985);
-        }
-
-        /* ==========================================
-           SECURE
-        ========================================== */
-
-        .secure {
-          margin-top:
-            10px;
-
-          color: #9b762f;
-
-          font-size: 9px;
-
-          font-weight: 600;
-        }
-
-        /* ==========================================
-           SMALL MOBILE
-        ========================================== */
-
-        @media (
-          max-width: 359px
-        ) {
-          .successScreen {
-            padding: 14px;
-          }
-
-          .successCard {
-            padding:
-              22px 14px;
-
-            border-radius:
-              14px;
-          }
-
-          .check {
-            width: 62px;
-            height: 62px;
-
-            margin-bottom:
-              10px;
-
-            font-size: 36px;
-          }
-
-          .statusLabel {
-            font-size: 8px;
-          }
-
-          .successCard h1 {
-            font-size: 19px;
-          }
-
-          .successCard h2 {
-            font-size: 14px;
-          }
-
-          .thanks {
-            margin-bottom:
-              14px;
-
-            font-size: 11px;
-          }
-
-          .details {
-            padding: 10px;
-          }
-
-          .details div {
-            font-size: 10px;
-          }
-
-          .receipt,
-          .share {
-            height: 43px;
-
-            font-size: 12px;
-          }
-
-          .home {
-            height: 38px;
-
-            font-size: 11px;
-          }
-        }
-
-        /* ==========================================
-           SHORT MOBILE
-        ========================================== */
-
-        @media (
-          max-height: 650px
-        ) and (
-          max-width: 599px
-        ) {
-          .successScreen {
-            align-items:
-              flex-start;
-
-            overflow-y: auto;
-
-            padding-top:
-              14px;
-          }
-
-          .successCard {
-            padding-top:
-              18px;
-
-            padding-bottom:
-              18px;
-          }
-
-          .check {
-            width: 56px;
-            height: 56px;
-
-            margin-bottom:
-              8px;
-
-            font-size: 32px;
-          }
-
-          .divider {
-            margin:
-              8px 0;
-          }
-
-          .thanks {
-            margin-bottom:
-              12px;
-          }
-
-          .details div {
-            padding:
-              6px 0;
-          }
-
-          .receipt {
-            margin-top:
-              9px;
-          }
-        }
-
-        /* ==========================================
-           LARGE MOBILE
-        ========================================== */
-
-        @media (
-          min-width: 430px
-        ) and (
-          max-width: 599px
-        ) {
-          .successScreen {
-            padding: 28px;
-          }
-
-          .successCard {
-            max-width:
-              430px;
-
-            padding:
-              32px 24px;
-
-            border-radius:
-              19px;
-          }
-
-          .check {
-            width: 80px;
-            height: 80px;
-
-            font-size: 46px;
-          }
-
-          .successCard h1 {
-            font-size: 25px;
-          }
-
-          .successCard h2 {
-            font-size: 16px;
-          }
-
-          .thanks {
-            font-size: 13px;
-          }
-
-          .details {
-            padding: 15px;
-          }
-
-          .details div {
-            padding:
-              9px 0;
-
-            font-size: 12px;
-          }
-
-          .receipt,
-          .share {
-            height: 49px;
-
-            font-size: 14px;
-          }
-        }
-
-        /* ==========================================
-           TABLET
-        ========================================== */
-
-        @media (
-          min-width: 600px
-        ) and (
-          max-width: 1023px
-        ) {
-          .successScreen {
-            padding:
-              50px 24px;
-          }
-
-          .successCard {
-            max-width:
-              520px;
-
-            padding:
-              42px 42px
-              38px;
-
-            border-radius:
-              23px;
-
-            box-shadow:
-              0 18px 45px
-              rgba(
-                79,
-                43,
-                14,
-                0.09
-              );
-          }
-
-          .check {
-            width: 88px;
-            height: 88px;
-
-            margin-bottom:
-              16px;
-
-            font-size: 51px;
-          }
-
-          .statusLabel {
-            margin-bottom:
-              8px;
-
-            padding:
-              6px 12px;
-
-            font-size: 9px;
-          }
-
-          .successCard h1 {
-            font-size: 30px;
-          }
-
-          .successCard h2 {
-            margin-top:
-              9px;
-
-            font-size: 17px;
-          }
-
-          .divider {
-            margin:
-              17px 0;
-          }
-
-          .divider span {
-            width: 70px;
-          }
-
-          .thanks {
-            max-width:
-              380px;
-
-            margin-bottom:
-              23px;
-
-            font-size: 14px;
-          }
-
-          .details {
-            padding:
-              16px 18px;
-
-            border-radius:
-              13px;
-          }
-
-          .details div {
-            padding:
-              10px 0;
-
-            font-size: 13px;
-          }
-
-          .details .amount {
-            font-size: 15px;
-          }
-
-          .receipt,
-          .share {
-            height: 52px;
-
-            border-radius:
-              11px;
-
-            font-size: 14px;
-          }
-
-          .home {
-            height: 43px;
-
-            font-size: 13px;
-          }
-
-          .secure {
-            margin-top:
-              14px;
-
-            font-size: 10px;
-          }
-        }
-
-        /* ==========================================
-           DESKTOP WEBSITE
-        ========================================== */
-
-        @media (
-          min-width: 1024px
-        ) {
-          .successScreen {
-            min-height:
-              100vh;
-
-            padding:
-              65px 40px;
-
-            background:
-              radial-gradient(
-                circle at top left,
-                rgba(
-                  25,
-                  168,
-                  120,
-                  0.08
-                ),
-                transparent
-                  30%
-              ),
-              radial-gradient(
-                circle at bottom right,
-                rgba(
-                  201,
-                  148,
-                  53,
-                  0.13
-                ),
-                transparent
-                  30%
-              ),
-              #fff9ed;
-          }
-
-          .successCard {
-            max-width:
-              610px;
-
-            padding:
-              52px 55px
-              46px;
-
-            border-radius:
-              28px;
-
-            background:
-              rgba(
-                255,
-                253,
-                248,
-                0.98
-              );
-
-            box-shadow:
-              0 24px 65px
-              rgba(
-                79,
-                43,
-                14,
-                0.11
-              );
-          }
-
-          .check {
-            width: 98px;
-            height: 98px;
-
-            margin-bottom:
-              18px;
-
-            font-size: 56px;
-
-            box-shadow:
-              0 12px 28px
-              rgba(
-                25,
-                168,
-                120,
-                0.22
-              );
-          }
-
-          .statusLabel {
-            margin-bottom:
-              9px;
-
-            padding:
-              6px 13px;
-
-            font-size: 10px;
-          }
-
-          .successCard h1 {
-            font-size: 36px;
-          }
-
-          .successCard h2 {
-            margin-top:
-              10px;
-
-            font-size: 19px;
-          }
-
-          .divider {
-            margin:
-              20px 0;
-          }
-
-          .divider span {
-            width: 90px;
-          }
-
-          .divider b {
-            font-size: 11px;
-          }
-
-          .thanks {
-            max-width:
-              420px;
-
-            margin-bottom:
-              28px;
-
-            font-size: 15px;
-
-            line-height: 1.6;
-          }
-
-          .details {
-            padding:
-              19px 22px;
-
-            border-radius:
-              14px;
-          }
-
-          .details div {
-            padding:
-              11px 0;
-
-            font-size: 13px;
-          }
-
-          .details .amount {
-            font-size: 16px;
-          }
-
-          .actions {
-            max-width:
-              420px;
-
-            margin: 0 auto;
-          }
-
-          .receipt {
-            height: 54px;
-
-            margin-top:
-              24px;
-
-            border-radius:
-              12px;
-
-            font-size: 15px;
-          }
-
-          .receipt:hover {
-            background:
-              #7f1111;
-
-            transform:
-              translateY(-1px);
-
-            box-shadow:
-              0 9px 22px
-              rgba(
-                113,
-                17,
-                17,
-                0.18
-              );
-          }
-
-          .share {
-            height: 52px;
-
-            margin-top:
-              10px;
-
-            border-radius:
-              12px;
-
-            font-size: 14px;
-          }
-
-          .share:hover {
-            border-color:
-              #a71919;
-
-            background:
-              #fff5ed;
-
-            transform:
-              translateY(-1px);
-          }
-
-          .home {
-            height: 44px;
-
-            font-size: 13px;
-          }
-
-          .home:hover {
-            color: #a71919;
-          }
-
-          .secure {
-            margin-top:
-              17px;
-
-            font-size: 10px;
-          }
-
-          .glowOne {
-            width: 290px;
-            height: 290px;
-
-            top: -130px;
-            right: -100px;
-          }
-
-          .glowTwo {
-            width: 280px;
-            height: 280px;
-
-            left: -130px;
-            bottom: -120px;
-          }
-        }
-
-        /* ==========================================
-           LARGE DESKTOP
-        ========================================== */
-
-        @media (
-          min-width: 1440px
-        ) {
-          .successCard {
-            max-width:
-              660px;
-
-            padding:
-              58px 62px
-              52px;
-          }
-
-          .check {
-            width: 106px;
-            height: 106px;
-
-            font-size: 61px;
-          }
-
-          .successCard h1 {
-            font-size: 40px;
-          }
-
-          .successCard h2 {
-            font-size: 20px;
-          }
-
-          .thanks {
-            font-size: 16px;
-          }
-
-          .details div {
-            font-size: 14px;
-          }
-
-          .actions {
-            max-width:
-              450px;
-          }
-
-          .receipt {
-            height: 57px;
-
-            font-size: 16px;
-          }
-        }
-      `}</style>
     </main>
   );
 }
