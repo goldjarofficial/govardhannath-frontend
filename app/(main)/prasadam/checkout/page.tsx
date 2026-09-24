@@ -13,7 +13,16 @@ import { useRouter } from "next/navigation";
    TYPES
 ========================================================= */
 
-type Cart = Record<number, number>;
+type Weight =
+  | "250g"
+  | "500g"
+  | "1kg";
+
+type CartItem = {
+  productId: number;
+  weight: Weight;
+  quantity: number;
+};
 
 type Product = {
   id: number;
@@ -59,6 +68,39 @@ const products: Product[] = [
 ];
 
 /* =========================================================
+   HELPERS
+========================================================= */
+
+function isValidWeight(
+  weight: unknown
+): weight is Weight {
+  return (
+    weight === "250g" ||
+    weight === "500g" ||
+    weight === "1kg"
+  );
+}
+
+function getWeightPrice(
+  basePrice: number,
+  weight: Weight
+) {
+  switch (weight) {
+    case "250g":
+      return basePrice * 0.5;
+
+    case "500g":
+      return basePrice;
+
+    case "1kg":
+      return basePrice * 2;
+
+    default:
+      return basePrice;
+  }
+}
+
+/* =========================================================
    PAGE
 ========================================================= */
 
@@ -66,7 +108,7 @@ export default function CheckoutPage() {
   const router = useRouter();
 
   const [cart, setCart] =
-    useState<Cart>({});
+    useState<CartItem[]>([]);
 
   const [loaded, setLoaded] =
     useState(false);
@@ -108,18 +150,108 @@ export default function CheckoutPage() {
   useEffect(() => {
     try {
       const savedCart =
-        localStorage.getItem("prasadam-cart");
-
-      if (savedCart) {
-        setCart(
-          JSON.parse(savedCart) as Cart
+        localStorage.getItem(
+          "prasadam-cart"
         );
+
+      if (!savedCart) {
+        setCart([]);
+        return;
+      }
+
+      const parsedCart =
+        JSON.parse(savedCart);
+
+      /*
+        NEW FORMAT
+
+        [
+          {
+            productId: 1,
+            weight: "1kg",
+            quantity: 5
+          }
+        ]
+      */
+
+      if (Array.isArray(parsedCart)) {
+        const validCart: CartItem[] =
+          parsedCart.filter(
+            (item): item is CartItem =>
+              typeof item?.productId ===
+                "number" &&
+              isValidWeight(
+                item?.weight
+              ) &&
+              typeof item?.quantity ===
+                "number" &&
+              Number.isFinite(
+                item?.quantity
+              ) &&
+              item.quantity > 0
+          );
+
+        setCart(validCart);
+
+        return;
+      }
+
+      /*
+        OLD FORMAT SUPPORT
+
+        {
+          "1": 2,
+          "2": 3
+        }
+
+        Old cart had no weight information,
+        so we assume 500g.
+      */
+
+      if (
+        parsedCart &&
+        typeof parsedCart ===
+          "object"
+      ) {
+        const oldCart: CartItem[] = [];
+
+        Object.entries(
+          parsedCart
+        ).forEach(
+          ([productId, quantity]) => {
+            const id =
+              Number(productId);
+
+            const qty =
+              Number(quantity);
+
+            if (
+              Number.isFinite(id) &&
+              Number.isFinite(qty) &&
+              qty > 0 &&
+              products.some(
+                (product) =>
+                  product.id === id
+              )
+            ) {
+              oldCart.push({
+                productId: id,
+                weight: "500g",
+                quantity: qty,
+              });
+            }
+          }
+        );
+
+        setCart(oldCart);
       }
     } catch (error) {
       console.error(
         "Failed to load cart:",
         error
       );
+
+      setCart([]);
     } finally {
       setLoaded(true);
     }
@@ -130,20 +262,58 @@ export default function CheckoutPage() {
   ========================================================= */
 
   const cartItems = useMemo(() => {
-    return products
+    return cart
+      .map((cartItem) => {
+        const product =
+          products.find(
+            (item) =>
+              item.id ===
+              cartItem.productId
+          );
+
+        if (!product) {
+          return null;
+        }
+
+        if (
+          !isValidWeight(
+            cartItem.weight
+          )
+        ) {
+          return null;
+        }
+
+        const price =
+          getWeightPrice(
+            product.price,
+            cartItem.weight
+          );
+
+        return {
+          ...product,
+          productId:
+            cartItem.productId,
+          weight:
+            cartItem.weight,
+          quantity:
+            cartItem.quantity,
+          price,
+        };
+      })
       .filter(
-        (product) =>
-          (cart[product.id] ?? 0) > 0
-      )
-      .map((product) => ({
-        ...product,
-        quantity:
-          cart[product.id] ?? 0,
-      }));
+        (
+          item
+        ): item is Product & {
+          productId: number;
+          weight: Weight;
+          quantity: number;
+          price: number;
+        } => item !== null
+      );
   }, [cart]);
 
   /* =========================================================
-     TOTAL
+     TOTAL ITEMS
   ========================================================= */
 
   const totalItems = useMemo(() => {
@@ -153,6 +323,10 @@ export default function CheckoutPage() {
       0
     );
   }, [cartItems]);
+
+  /* =========================================================
+     SUBTOTAL
+  ========================================================= */
 
   const subtotal = useMemo(() => {
     return cartItems.reduce(
@@ -168,6 +342,10 @@ export default function CheckoutPage() {
 
   const totalAmount =
     subtotal + deliveryCharge;
+
+  /* =========================================================
+     FORMAT PRICE
+  ========================================================= */
 
   const formatPrice = (
     value: number
@@ -229,9 +407,11 @@ export default function CheckoutPage() {
       BACKEND API LATER
 
       Yahan future me:
+
       POST /prasadam/orders
 
-      Payload example:
+      Payload:
+
       {
         customer: {...},
         items: cartItems,
@@ -284,6 +464,10 @@ export default function CheckoutPage() {
 
     localStorage.removeItem(
       "prasadam-cart"
+    );
+
+    localStorage.removeItem(
+      "prasadam-cart-weights"
     );
 
     window.dispatchEvent(
@@ -776,7 +960,7 @@ export default function CheckoutPage() {
               {cartItems.map(
                 (item) => (
                   <div
-                    key={item.id}
+                    key={`${item.productId}-${item.weight}`}
                     className="
                       flex
                       items-center
@@ -823,7 +1007,7 @@ export default function CheckoutPage() {
                           text-[#81756c]
                         "
                       >
-                        ₹
+                        {item.weight} • ₹
                         {formatPrice(
                           item.price
                         )}{" "}
@@ -911,7 +1095,7 @@ export default function CheckoutPage() {
               {cartItems.map(
                 (item) => (
                   <div
-                    key={item.id}
+                    key={`${item.productId}-${item.weight}`}
                     className="
                       flex
                       items-center
@@ -982,7 +1166,7 @@ export default function CheckoutPage() {
                           text-[#81756c]
                         "
                       >
-                        ₹
+                        {item.weight} • ₹
                         {formatPrice(
                           item.price
                         )}{" "}

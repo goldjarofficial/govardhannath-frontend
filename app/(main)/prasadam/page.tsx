@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useLanguage } from "../../lib/LanguageProvider";
@@ -15,11 +10,7 @@ import type { TranslationKey } from "../../lib/i18n";
    TYPES
 ========================================================= */
 
-type Category =
-  | "all"
-  | "sweets"
-  | "mahaprasad"
-  | "gifts";
+type Category = "all" | "sweets" | "mahaprasad" | "gifts";
 
 type ProductCategory = Exclude<Category, "all">;
 
@@ -39,42 +30,20 @@ type Product = {
 };
 
 type CartItem = {
-  quantity: number;
+  productId: number;
   weight: Weight;
+  quantity: number;
 };
 
-type Cart = Record<number, CartItem>;
-
 /* =========================================================
-   WEIGHT OPTIONS
-   Existing product price = 500g price
+   CONSTANTS
 ========================================================= */
 
-const weights: {
-  id: Weight;
-  label: string;
-  multiplier: number;
-}[] = [
-  {
-    id: "250g",
-    label: "250 g",
-    multiplier: 0.5,
-  },
-  {
-    id: "500g",
-    label: "500 g",
-    multiplier: 1,
-  },
-  {
-    id: "1kg",
-    label: "1 kg",
-    multiplier: 2,
-  },
-];
+const CART_STORAGE_KEY = "prasadam-cart";
+const OLD_WEIGHT_STORAGE_KEY = "prasadam-cart-weights";
+const CART_UPDATED_EVENT = "prasadam-cart-updated";
 
-/* =========================================================
-   CATEGORIES
-========================================================= */
+const DEFAULT_WEIGHT: Weight = "500g";
 
 const categories: CategoryItem[] = [
   {
@@ -94,10 +63,6 @@ const categories: CategoryItem[] = [
     labelKey: "gifts",
   },
 ];
-
-/* =========================================================
-   PRODUCTS
-========================================================= */
 
 const products: Product[] = [
   {
@@ -131,141 +96,230 @@ const products: Product[] = [
 ];
 
 /* =========================================================
+   HELPERS
+========================================================= */
+
+function isValidWeight(value: unknown): value is Weight {
+  return (
+    value === "250g" ||
+    value === "500g" ||
+    value === "1kg"
+  );
+}
+
+function getWeightPrice(
+  basePrice: number,
+  weight: Weight
+): number {
+  if (weight === "250g") {
+    return basePrice * 0.5;
+  }
+
+  if (weight === "1kg") {
+    return basePrice * 2;
+  }
+
+  return basePrice;
+}
+
+function cleanCart(value: unknown): CartItem[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter(
+      (item): item is Record<string, unknown> =>
+        Boolean(
+          item &&
+            typeof item === "object" &&
+            !Array.isArray(item)
+        )
+    )
+    .map((item) => ({
+      productId: Number(item.productId),
+      weight: item.weight,
+      quantity: Math.floor(Number(item.quantity)),
+    }))
+    .filter(
+      (item): item is CartItem =>
+        Number.isInteger(item.productId) &&
+        item.productId > 0 &&
+        isValidWeight(item.weight) &&
+        Number.isFinite(item.quantity) &&
+        item.quantity > 0
+    );
+}
+
+/* =========================================================
+   OLD CART MIGRATION
+========================================================= */
+
+function migrateOldCart(
+  oldCart: unknown,
+  oldWeights: unknown
+): CartItem[] {
+  if (
+    !oldCart ||
+    typeof oldCart !== "object" ||
+    Array.isArray(oldCart)
+  ) {
+    return [];
+  }
+
+  const cartObject =
+    oldCart as Record<string, unknown>;
+
+  const weightsObject =
+    oldWeights &&
+    typeof oldWeights === "object" &&
+    !Array.isArray(oldWeights)
+      ? (oldWeights as Record<string, unknown>)
+      : {};
+
+  return Object.entries(cartObject)
+    .map(([productId, quantity]) => {
+      const id = Number(productId);
+      const count = Number(quantity);
+
+      if (
+        !Number.isInteger(id) ||
+        id <= 0 ||
+        !Number.isFinite(count) ||
+        count <= 0
+      ) {
+        return null;
+      }
+
+      const savedWeight =
+        weightsObject[productId];
+
+      return {
+        productId: id,
+        weight: isValidWeight(savedWeight)
+          ? savedWeight
+          : DEFAULT_WEIGHT,
+        quantity: Math.floor(count),
+      };
+    })
+    .filter(
+      (item): item is CartItem =>
+        item !== null
+    );
+}
+
+/* =========================================================
+   LOAD CART FROM LOCAL STORAGE
+========================================================= */
+
+function loadCart(): CartItem[] {
+  try {
+    const savedCart =
+      localStorage.getItem(
+        CART_STORAGE_KEY
+      );
+
+    if (!savedCart) {
+      return [];
+    }
+
+    const parsedCart: unknown =
+      JSON.parse(savedCart);
+
+    /* New cart format */
+
+    if (Array.isArray(parsedCart)) {
+      return cleanCart(parsedCart);
+    }
+
+    /* Old cart format */
+
+    let oldWeights: unknown = {};
+
+    const savedWeights =
+      localStorage.getItem(
+        OLD_WEIGHT_STORAGE_KEY
+      );
+
+    if (savedWeights) {
+      try {
+        oldWeights =
+          JSON.parse(savedWeights);
+      } catch {
+        oldWeights = {};
+      }
+    }
+
+    return migrateOldCart(
+      parsedCart,
+      oldWeights
+    );
+  } catch (error) {
+    console.error(
+      "Failed to load prasadam cart:",
+      error
+    );
+
+    return [];
+  }
+}
+
+/* =========================================================
+   SAVE CART
+========================================================= */
+
+function saveCart(cart: CartItem[]) {
+  try {
+    localStorage.setItem(
+      CART_STORAGE_KEY,
+      JSON.stringify(cart)
+    );
+
+    localStorage.removeItem(
+      OLD_WEIGHT_STORAGE_KEY
+    );
+
+    window.dispatchEvent(
+      new Event(CART_UPDATED_EVENT)
+    );
+  } catch (error) {
+    console.error(
+      "Failed to save prasadam cart:",
+      error
+    );
+  }
+}
+
+/* =========================================================
    PAGE
 ========================================================= */
 
 export default function PrasadamPage() {
   const router = useRouter();
+
   const { t } = useLanguage();
 
   const [category, setCategory] =
     useState<Category>("all");
 
   const [cart, setCart] =
-    useState<Cart>({});
-
-  const [selectedWeights, setSelectedWeights] =
-    useState<Record<number, Weight>>({});
+    useState<CartItem[]>([]);
 
   const [cartLoaded, setCartLoaded] =
     useState(false);
+
+  const [selectedWeights, setSelectedWeights] =
+    useState<Record<number, Weight>>({});
 
   /* =======================================================
      LOAD CART
   ======================================================= */
 
   useEffect(() => {
-    try {
-      const savedCart =
-        localStorage.getItem(
-          "prasadam-cart"
-        );
+    const loadedCart = loadCart();
 
-      if (savedCart) {
-        const parsedCart =
-          JSON.parse(savedCart);
-
-        const convertedCart: Cart = {};
-
-        Object.entries(parsedCart).forEach(
-          ([id, value]) => {
-            /*
-              OLD CART FORMAT
-
-              {
-                "1": 2,
-                "2": 1
-              }
-            */
-
-            if (
-              typeof value === "number"
-            ) {
-              convertedCart[
-                Number(id)
-              ] = {
-                quantity: value,
-                weight: "500g",
-              };
-
-              return;
-            }
-
-            /*
-              NEW CART FORMAT
-
-              {
-                "1": {
-                  quantity: 2,
-                  weight: "500g"
-                }
-              }
-            */
-
-            if (
-              value &&
-              typeof value === "object"
-            ) {
-              const item =
-                value as Partial<CartItem>;
-
-              const quantity =
-                Number(
-                  item.quantity
-                ) || 0;
-
-              const weight =
-                item.weight === "250g" ||
-                item.weight === "500g" ||
-                item.weight === "1kg"
-                  ? item.weight
-                  : "500g";
-
-              if (quantity > 0) {
-                convertedCart[
-                  Number(id)
-                ] = {
-                  quantity,
-                  weight,
-                };
-              }
-            }
-          }
-        );
-
-        setCart(convertedCart);
-
-        /*
-          Set selected weights
-          from saved cart.
-        */
-
-        const savedWeights:
-          Record<number, Weight> =
-          {};
-
-        Object.entries(
-          convertedCart
-        ).forEach(
-          ([id, item]) => {
-            savedWeights[
-              Number(id)
-            ] = item.weight;
-          }
-        );
-
-        setSelectedWeights(
-          savedWeights
-        );
-      }
-    } catch (error) {
-      console.error(
-        "Failed to load prasadam cart:",
-        error
-      );
-    } finally {
-      setCartLoaded(true);
-    }
+    setCart(loadedCart);
+    setCartLoaded(true);
   }, []);
 
   /* =======================================================
@@ -273,41 +327,27 @@ export default function PrasadamPage() {
   ======================================================= */
 
   useEffect(() => {
-    if (!cartLoaded) return;
+    if (!cartLoaded) {
+      return;
+    }
 
-    localStorage.setItem(
-      "prasadam-cart",
-      JSON.stringify(cart)
-    );
-
-    /*
-      Notify HomeHeader / other components
-      that cart has changed.
-    */
-
-    window.dispatchEvent(
-      new Event(
-        "prasadam-cart-updated"
-      )
-    );
+    saveCart(cart);
   }, [cart, cartLoaded]);
 
   /* =======================================================
      FILTER PRODUCTS
   ======================================================= */
 
-  const filteredProducts =
-    useMemo(() => {
-      if (category === "all") {
-        return products;
-      }
+  const filteredProducts = useMemo(() => {
+    if (category === "all") {
+      return products;
+    }
 
-      return products.filter(
-        (product) =>
-          product.category ===
-          category
-      );
-    }, [category]);
+    return products.filter(
+      (product) =>
+        product.category === category
+    );
+  }, [category]);
 
   /* =======================================================
      GET SELECTED WEIGHT
@@ -318,29 +358,38 @@ export default function PrasadamPage() {
   ): Weight => {
     return (
       selectedWeights[productId] ??
-      cart[productId]?.weight ??
-      "500g"
+      DEFAULT_WEIGHT
     );
   };
 
   /* =======================================================
-     GET PRICE
+     GET CART ITEM
   ======================================================= */
 
-  const getPrice = (
-    product: Product,
+  const findCartItem = (
+    productId: number,
     weight: Weight
   ) => {
-    const selectedWeight =
-      weights.find(
-        (item) =>
-          item.id === weight
-      );
+    return cart.find(
+      (item) =>
+        item.productId === productId &&
+        item.weight === weight
+    );
+  };
 
-    return Math.round(
-      product.price *
-        (selectedWeight?.multiplier ??
-          1)
+  /* =======================================================
+     GET QUANTITY
+  ======================================================= */
+
+  const getQuantity = (
+    productId: number,
+    weight: Weight
+  ): number => {
+    return (
+      findCartItem(
+        productId,
+        weight
+      )?.quantity ?? 0
     );
   };
 
@@ -349,89 +398,14 @@ export default function PrasadamPage() {
   ======================================================= */
 
   const changeWeight = (
-    id: number,
+    productId: number,
     weight: Weight
   ) => {
-    /*
-      Always remember selected weight.
-    */
-
     setSelectedWeights(
-      (previous) => ({
-        ...previous,
-        [id]: weight,
+      (previousWeights) => ({
+        ...previousWeights,
+        [productId]: weight,
       })
-    );
-
-    /*
-      If product is already
-      in cart, update cart weight too.
-    */
-
-    setCart((previousCart) => {
-      const existing =
-        previousCart[id];
-
-      if (!existing) {
-        return previousCart;
-      }
-
-      return {
-        ...previousCart,
-
-        [id]: {
-          ...existing,
-          weight,
-        },
-      };
-    });
-  };
-
-  /* =======================================================
-     ADD TO CART
-  ======================================================= */
-
-  const addToCart = (
-    id: number
-  ) => {
-    const weight =
-      getSelectedWeight(id);
-
-    setCart(
-      (previousCart) => {
-        const existing =
-          previousCart[id];
-
-        /*
-          If same product already exists,
-          increase quantity.
-        */
-
-        if (existing) {
-          return {
-            ...previousCart,
-
-            [id]: {
-              quantity:
-                existing.quantity + 1,
-              weight,
-            },
-          };
-        }
-
-        /*
-          New product
-        */
-
-        return {
-          ...previousCart,
-
-          [id]: {
-            quantity: 1,
-            weight,
-          },
-        };
-      }
     );
   };
 
@@ -440,36 +414,42 @@ export default function PrasadamPage() {
   ======================================================= */
 
   const increase = (
-    id: number
+    productId: number,
+    weight: Weight
   ) => {
-    setCart(
-      (previousCart) => {
-        const existing =
-          previousCart[id];
+    setCart((previousCart) => {
+      const existingItem =
+        previousCart.find(
+          (item) =>
+            item.productId ===
+              productId &&
+            item.weight === weight
+        );
 
-        if (!existing) {
-          return {
-            ...previousCart,
-
-            [id]: {
-              quantity: 1,
-              weight:
-                getSelectedWeight(id),
-            },
-          };
-        }
-
-        return {
-          ...previousCart,
-
-          [id]: {
-            ...existing,
-            quantity:
-              existing.quantity + 1,
-          },
-        };
+      if (existingItem) {
+        return previousCart.map(
+          (item) =>
+            item.productId ===
+              productId &&
+            item.weight === weight
+              ? {
+                  ...item,
+                  quantity:
+                    item.quantity + 1,
+                }
+              : item
+        );
       }
-    );
+
+      return [
+        ...previousCart,
+        {
+          productId,
+          weight,
+          quantity: 1,
+        },
+      ];
+    });
   };
 
   /* =======================================================
@@ -477,52 +457,59 @@ export default function PrasadamPage() {
   ======================================================= */
 
   const decrease = (
-    id: number
+    productId: number,
+    weight: Weight
   ) => {
-    setCart(
-      (previousCart) => {
-        const existing =
-          previousCart[id];
+    setCart((previousCart) => {
+      const existingItem =
+        previousCart.find(
+          (item) =>
+            item.productId ===
+              productId &&
+            item.weight === weight
+        );
 
-        if (!existing) {
-          return previousCart;
-        }
-
-        if (
-          existing.quantity <= 1
-        ) {
-          const updatedCart = {
-            ...previousCart,
-          };
-
-          delete updatedCart[id];
-
-          return updatedCart;
-        }
-
-        return {
-          ...previousCart,
-
-          [id]: {
-            ...existing,
-            quantity:
-              existing.quantity - 1,
-          },
-        };
+      if (!existingItem) {
+        return previousCart;
       }
-    );
+
+      if (existingItem.quantity <= 1) {
+        return previousCart.filter(
+          (item) =>
+            !(
+              item.productId ===
+                productId &&
+              item.weight === weight
+            )
+        );
+      }
+
+      return previousCart.map(
+        (item) =>
+          item.productId ===
+              productId &&
+          item.weight === weight
+            ? {
+                ...item,
+                quantity:
+                  item.quantity - 1,
+              }
+            : item
+      );
+    });
   };
 
   /* =======================================================
      CART COUNT
   ======================================================= */
 
-  const cartCount =
-    Object.values(cart).reduce(
+  const cartCount = useMemo(() => {
+    return cart.reduce(
       (total, item) =>
         total + item.quantity,
       0
     );
+  }, [cart]);
 
   /* =======================================================
      UI
@@ -578,9 +565,7 @@ export default function PrasadamPage() {
 
         <button
           type="button"
-          onClick={() =>
-            router.back()
-          }
+          onClick={() => router.back()}
           aria-label={t("back")}
           className="
             grid
@@ -656,7 +641,7 @@ export default function PrasadamPage() {
           </h1>
         </div>
 
-        {/* CART */}
+        {/* CART ICON */}
 
         <button
           type="button"
@@ -706,19 +691,14 @@ export default function PrasadamPage() {
                 min-w-[17px]
                 place-items-center
                 rounded-full
-                border-2
-                border-[#fffaf2]
                 bg-[#e74b18]
                 px-1
                 text-[8px]
                 font-bold
-                leading-none
                 text-white
               "
             >
-              {cartCount > 99
-                ? "99+"
-                : cartCount}
+              {cartCount}
             </span>
           )}
         </button>
@@ -735,6 +715,7 @@ export default function PrasadamPage() {
           max-w-[1420px]
 
           lg:px-8
+
           xl:px-10
         "
       >
@@ -799,8 +780,7 @@ export default function PrasadamPage() {
                 text-[#776d65]
               "
             >
-              Choose blessed prasadam and
-              sacred offerings from Shri
+              Choose blessed prasadam and sacred offerings from Shri
               Govardhannath Haveli.
             </p>
           </div>
@@ -849,64 +829,57 @@ export default function PrasadamPage() {
             lg:py-5
           "
         >
-          {categories.map(
-            (item) => {
-              const active =
-                category ===
-                item.id;
+          {categories.map((item) => {
+            const active =
+              category === item.id;
 
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() =>
-                    setCategory(
-                      item.id
-                    )
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() =>
+                  setCategory(item.id)
+                }
+                className={`
+                  h-9
+                  shrink-0
+                  rounded-lg
+                  border
+                  px-4
+                  text-[10px]
+                  font-semibold
+                  transition-all
+
+                  sm:h-10
+                  sm:px-5
+                  sm:text-[11px]
+
+                  md:text-xs
+
+                  ${
+                    active
+                      ? `
+                        border-[#e74b18]
+                        bg-[#e74b18]
+                        text-white
+                        shadow-sm
+                      `
+                      : `
+                        border-[#eadbc5]
+                        bg-[#fffdf8]
+                        text-[#776d65]
+
+                        lg:hover:-translate-y-0.5
+                        lg:hover:border-[#e74b18]
+                        lg:hover:text-[#e74b18]
+                      `
                   }
-                  className={`
-                    h-9
-                    shrink-0
-                    rounded-lg
-                    border
-                    px-4
-                    text-[10px]
-                    font-semibold
-                    transition-all
-
-                    sm:h-10
-                    sm:px-5
-                    sm:text-[11px]
-
-                    md:text-xs
-
-                    ${
-                      active
-                        ? `
-                          border-[#e74b18]
-                          bg-[#e74b18]
-                          text-white
-                          shadow-sm
-                        `
-                        : `
-                          border-[#eadbc5]
-                          bg-[#fffdf8]
-                          text-[#776d65]
-
-                          lg:hover:-translate-y-0.5
-                          lg:hover:border-[#e74b18]
-                          lg:hover:text-[#e74b18]
-                        `
-                    }
-                  `}
-                >
-                  {t(
-                    item.labelKey
-                  )}
-                </button>
-              );
-            }
-          )}
+                `}
+              >
+                {t(item.labelKey)}
+              </button>
+            );
+          })}
         </div>
 
         {/* =================================================
@@ -935,19 +908,20 @@ export default function PrasadamPage() {
         >
           {filteredProducts.map(
             (product) => {
-              const quantity =
-                cart[
-                  product.id
-                ]?.quantity ?? 0;
-
               const selectedWeight =
                 getSelectedWeight(
                   product.id
                 );
 
-              const selectedPrice =
-                getPrice(
-                  product,
+              const quantity =
+                getQuantity(
+                  product.id,
+                  selectedWeight
+                );
+
+              const currentPrice =
+                getWeightPrice(
+                  product.price,
                   selectedWeight
                 );
 
@@ -957,6 +931,7 @@ export default function PrasadamPage() {
                   className="
                     flex
                     min-w-0
+                    items-center
                     gap-3
                     rounded-xl
                     border
@@ -968,10 +943,11 @@ export default function PrasadamPage() {
 
                     sm:p-3
 
-                    md:min-h-[170px]
+                    md:min-h-[125px]
 
-                    lg:min-h-[390px]
+                    lg:min-h-[310px]
                     lg:flex-col
+                    lg:items-stretch
                     lg:p-3.5
                     lg:hover:-translate-y-1
                     lg:hover:border-[#d7b97f]
@@ -1001,9 +977,7 @@ export default function PrasadamPage() {
                     "
                   >
                     <img
-                      src={
-                        product.image
-                      }
+                      src={product.image}
                       alt={t(
                         product.titleKey
                       )}
@@ -1020,379 +994,307 @@ export default function PrasadamPage() {
                     />
                   </div>
 
-                  {/* PRODUCT CONTENT */}
+                  {/* PRODUCT INFO */}
 
                   <div
                     className="
                       min-w-0
                       flex-1
 
-                      lg:flex
-                      lg:flex-col
                       lg:px-1
                     "
                   >
-                    <div>
-                      <span
-                        className="
-                          hidden
-                          text-[9px]
-                          font-bold
-                          uppercase
-                          tracking-[1px]
-                          text-[#c99435]
-
-                          md:block
-                        "
-                      >
-                        {t("prasadam")}
-                      </span>
-
-                      <h2
-                        className="
-                          truncate
-                          font-serif
-                          text-[14px]
-                          font-semibold
-                          text-[#332820]
-
-                          sm:text-[15px]
-
-                          md:mt-1
-                          md:text-[17px]
-
-                          lg:whitespace-normal
-                          lg:text-[19px]
-                        "
-                      >
-                        {t(
-                          product.titleKey
-                        )}
-                      </h2>
-
-                      <p
-                        className="
-                          mt-1
-                          text-[12px]
-                          font-bold
-                          text-[#a71919]
-
-                          md:mt-2
-                          md:text-[13px]
-
-                          lg:text-sm
-                        "
-                      >
-                        ₹
-                        {selectedPrice.toLocaleString(
-                          "en-IN"
-                        )}
-                      </p>
-                    </div>
-
-                    {/* WEIGHT OPTIONS */}
-
-                    <div
+                    <span
                       className="
-                        mt-2
+                        hidden
+                        text-[9px]
+                        font-bold
+                        uppercase
+                        tracking-[1px]
+                        text-[#c99435]
 
-                        lg:mt-3
+                        md:block
                       "
                     >
-                      <p
-                        className="
-                          mb-1.5
-                          text-[9px]
-                          font-semibold
-                          text-[#776d65]
+                      {t("prasadam")}
+                    </span>
 
-                          md:text-[10px]
+                    <h2
+                      className="
+                        truncate
+                        font-serif
+                        text-[14px]
+                        font-semibold
+                        text-[#332820]
+
+                        sm:text-[15px]
+
+                        md:mt-1
+                        md:text-[17px]
+
+                        lg:whitespace-normal
+                        lg:text-[19px]
+                      "
+                    >
+                      {t(product.titleKey)}
+                    </h2>
+
+                    {/* WEIGHT */}
+
+                    <div className="mt-2">
+                      <select
+                        value={selectedWeight}
+                        onChange={(event) =>
+                          changeWeight(
+                            product.id,
+                            event.target
+                              .value as Weight
+                          )
+                        }
+                        aria-label="Select weight"
+                        className="
+                          h-7
+                          w-[82px]
+                          cursor-pointer
+                          rounded-md
+                          border
+                          border-[#eadbc5]
+                          bg-[#fffdf8]
+                          px-2
+                          text-[10px]
+                          font-semibold
+                          text-[#641010]
+                          outline-none
+                          transition
+                          focus:border-[#e74b18]
+                          focus:ring-1
+                          focus:ring-[#e74b18]/20
+
+                          sm:h-9
+                          sm:text-[11px]
+
+                          lg:h-9
+                          lg:text-xs
                         "
                       >
-                        Select Weight
-                      </p>
+                        <option value="250g">
+                          250 Gram
+                        </option>
 
+                        <option value="500g">
+                          500 Gram
+                        </option>
+
+                        <option value="1kg">
+                          1 Kg
+                        </option>
+                      </select>
+                    </div>
+
+                    {/* PRICE */}
+
+                    <p
+                      className="
+                        mt-1
+                        text-[12px]
+                        font-bold
+                        text-[#a71919]
+
+                        md:mt-2
+                        md:text-[13px]
+
+                        lg:text-sm
+                      "
+                    >
+                      ₹
+                      {currentPrice.toLocaleString(
+                        "en-IN"
+                      )}
+                    </p>
+                  </div>
+
+                  {/* ADD TO CART / QUANTITY */}
+
+                  <div
+                    className="
+                      shrink-0
+
+                      lg:mt-auto
+                      lg:w-full
+                    "
+                  >
+                    {quantity === 0 ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          increase(
+                            product.id,
+                            selectedWeight
+                          )
+                        }
+                        className="
+                          flex
+                          h-9
+                          min-w-[100px]
+                          items-center
+                          justify-center
+                          gap-1.5
+                          rounded-lg
+                          border
+                          border-[#e74b18]
+                          bg-[#e74b18]
+                          px-3
+                          text-[10px]
+                          font-bold
+                          text-white
+                          shadow-sm
+                          transition-all
+
+                          active:scale-[0.97]
+
+                          sm:h-10
+                          sm:min-w-[110px]
+                          sm:text-[11px]
+
+                          lg:w-full
+                          lg:text-xs
+                          lg:hover:bg-[#d83f11]
+                        "
+                      >
+                        <CartIconWhite />
+                        Add to Cart
+                      </button>
+                    ) : (
                       <div
                         className="
-                          grid
-                          grid-cols-3
-                          gap-1.5
+                          flex
+                          flex-col
+                          gap-1
+
+                          lg:w-full
                         "
                       >
-                        {weights.map(
-                          (weight) => {
-                            const active =
-                              selectedWeight ===
-                              weight.id;
-
-                            const price =
-                              getPrice(
-                                product,
-                                weight.id
-                              );
-
-                            return (
-                              <button
-                                key={
-                                  weight.id
-                                }
-                                type="button"
-                                onClick={() =>
-                                  changeWeight(
-                                    product.id,
-                                    weight.id
-                                  )
-                                }
-                                className={`
-                                  rounded-lg
-                                  border
-                                  px-1
-                                  py-1.5
-                                  text-[8px]
-                                  font-bold
-                                  transition
-
-                                  sm:py-2
-                                  sm:text-[9px]
-
-                                  md:text-[10px]
-
-                                  ${
-                                    active
-                                      ? `
-                                        border-[#e74b18]
-                                        bg-[#e74b18]
-                                        text-white
-                                      `
-                                      : `
-                                        border-[#eadbc5]
-                                        bg-white
-                                        text-[#776d65]
-
-                                        hover:border-[#e74b18]
-                                        hover:text-[#e74b18]
-                                      `
-                                  }
-                                `}
-                              >
-                                <span className="block">
-                                  {
-                                    weight.label
-                                  }
-                                </span>
-
-                                <span
-                                  className={`
-                                    mt-0.5
-                                    block
-                                    text-[8px]
-                                    ${
-                                      active
-                                        ? "text-white/80"
-                                        : "text-[#a71919]"
-                                    }
-                                  `}
-                                >
-                                  ₹
-                                  {price.toLocaleString(
-                                    "en-IN"
-                                  )}
-                                </span>
-                              </button>
-                            );
-                          }
-                        )}
-                      </div>
-                    </div>
-
-                    {/* ADD / QUANTITY */}
-
-                    <div
-                      className="
-                        mt-2
-
-                        lg:mt-auto
-                        lg:pt-3
-                      "
-                    >
-                      {quantity ===
-                      0 ? (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            addToCart(
-                              product.id
-                            )
-                          }
-                          className="
-                            flex
-                            h-9
-                            w-full
-                            items-center
-                            justify-center
-                            gap-1.5
-                            rounded-lg
-                            border
-                            border-[#e74b18]
-                            bg-[#e74b18]
-                            px-3
-                            text-[10px]
-                            font-bold
-                            text-white
-                            shadow-sm
-                            transition-all
-
-                            active:scale-[0.97]
-
-                            sm:h-10
-                            sm:text-[11px]
-
-                            lg:text-xs
-                            lg:hover:bg-[#d83f11]
-                          "
-                        >
-                          <CartIconWhite />
-
-                          Add to Cart
-                        </button>
-                      ) : (
                         <div
                           className="
                             flex
-                            flex-col
-                            gap-1
+                            h-9
+                            items-center
+                            overflow-hidden
+                            rounded-lg
+                            border
+                            border-[#e74b18]
+                            bg-white
+                            shadow-sm
+
+                            sm:h-10
+
+                            lg:w-full
                           "
                         >
-                          <div
-                            className="
-                              flex
-                              h-9
-                              items-center
-                              overflow-hidden
-                              rounded-lg
-                              border
-                              border-[#e74b18]
-                              bg-white
-                              shadow-sm
+                          {/* MINUS */}
 
-                              sm:h-10
+                          <button
+                            type="button"
+                            onClick={() =>
+                              decrease(
+                                product.id,
+                                selectedWeight
+                              )
+                            }
+                            aria-label="Decrease quantity"
+                            className="
+                              grid
+                              h-full
+                              w-9
+                              shrink-0
+                              place-items-center
+                              bg-white
+                              text-lg
+                              font-bold
+                              text-[#e74b18]
+                              transition
+
+                              active:bg-[#fff2eb]
+
+                              sm:w-10
+
+                              lg:hover:bg-[#fff2eb]
                             "
                           >
-                            {/* MINUS */}
+                            −
+                          </button>
 
-                            <button
-                              type="button"
-                              onClick={() =>
-                                decrease(
-                                  product.id
-                                )
-                              }
-                              aria-label={t(
-                                "decreaseQuantity"
-                              )}
-                              className="
-                                grid
-                                h-full
-                                w-9
-                                shrink-0
-                                place-items-center
-                                bg-white
-                                text-lg
-                                font-bold
-                                text-[#e74b18]
-                                transition
-
-                                active:bg-[#fff2eb]
-
-                                sm:w-10
-
-                                lg:hover:bg-[#fff2eb]
-                              "
-                            >
-                              −
-                            </button>
-
-                            {/* QUANTITY */}
-
-                            <span
-                              className="
-                                grid
-                                h-full
-                                min-w-[34px]
-                                flex-1
-                                place-items-center
-                                border-x
-                                border-[#f1d6cb]
-                                bg-[#fffaf7]
-                                px-2
-                                text-xs
-                                font-bold
-                                text-[#641010]
-
-                                sm:text-[13px]
-                              "
-                            >
-                              {quantity}
-                            </span>
-
-                            {/* PLUS */}
-
-                            <button
-                              type="button"
-                              onClick={() =>
-                                increase(
-                                  product.id
-                                )
-                              }
-                              aria-label={t(
-                                "increaseQuantity"
-                              )}
-                              className="
-                                grid
-                                h-full
-                                w-9
-                                shrink-0
-                                place-items-center
-                                bg-[#e74b18]
-                                text-lg
-                                font-bold
-                                text-white
-                                transition
-
-                                active:bg-[#c83c10]
-
-                                sm:w-10
-
-                                lg:hover:bg-[#d83f11]
-                              "
-                            >
-                              +
-                            </button>
-                          </div>
+                          {/* NUMBER */}
 
                           <span
                             className="
-                              text-center
-                              text-[8px]
-                              font-semibold
-                              text-[#8d742e]
+                              grid
+                              h-full
+                              min-w-[34px]
+                              flex-1
+                              place-items-center
+                              border-x
+                              border-[#f1d6cb]
+                              bg-[#fffaf7]
+                              px-2
+                              text-xs
+                              font-bold
+                              text-[#641010]
 
-                              sm:text-[9px]
+                              sm:text-[13px]
                             "
                           >
-                            {selectedWeight ===
-                            "250g"
-                              ? "250 g"
-                              : selectedWeight ===
-                                "1kg"
-                              ? "1 kg"
-                              : "500 g"}{" "}
-                            ×{" "}
                             {quantity}
                           </span>
+
+                          {/* PLUS */}
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              increase(
+                                product.id,
+                                selectedWeight
+                              )
+                            }
+                            aria-label="Increase quantity"
+                            className="
+                              grid
+                              h-full
+                              w-9
+                              shrink-0
+                              place-items-center
+                              bg-[#e74b18]
+                              text-lg
+                              font-bold
+                              text-white
+                              transition
+
+                              active:bg-[#c83c10]
+
+                              sm:w-10
+
+                              lg:hover:bg-[#d83f11]
+                            "
+                          >
+                            +
+                          </button>
                         </div>
-                      )}
-                    </div>
+
+                        <span
+                          className="
+                            text-center
+                            text-[8px]
+                            font-semibold
+                            text-[#8d742e]
+
+                            sm:text-[9px]
+                          "
+                        >
+                          ✓ Added to Cart
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </article>
               );

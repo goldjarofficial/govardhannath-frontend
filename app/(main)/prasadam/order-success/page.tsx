@@ -1,15 +1,13 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
-
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 /* =========================================================
    TYPES
 ========================================================= */
+
+type Weight = "250g" | "500g" | "1kg";
 
 type OrderItem = {
   id: number;
@@ -17,6 +15,7 @@ type OrderItem = {
   price: number;
   image: string;
   quantity: number;
+  weight?: Weight;
 };
 
 type Customer = {
@@ -37,10 +36,7 @@ type Order = {
 
   items: OrderItem[];
 
-  paymentMethod:
-    | "upi"
-    | "card"
-    | "cod";
+  paymentMethod: "upi" | "card" | "cod";
 
   subtotal: number;
 
@@ -52,17 +48,21 @@ type Order = {
 };
 
 /* =========================================================
+   CONSTANTS
+========================================================= */
+
+const LAST_ORDER_KEY = "last-prasadam-order";
+
+/* =========================================================
    PAGE
 ========================================================= */
 
 export default function OrderSuccessPage() {
   const router = useRouter();
 
-  const [order, setOrder] =
-    useState<Order | null>(null);
+  const [order, setOrder] = useState<Order | null>(null);
 
-  const [loaded, setLoaded] =
-    useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   /* =======================================================
      LOAD LAST ORDER
@@ -70,24 +70,25 @@ export default function OrderSuccessPage() {
 
   useEffect(() => {
     try {
-      const savedOrder =
-        localStorage.getItem(
-          "last-prasadam-order"
-        );
+      const savedOrder = localStorage.getItem(LAST_ORDER_KEY);
 
-      if (savedOrder) {
-        const parsedOrder =
-          JSON.parse(
-            savedOrder
-          ) as Order;
-
-        setOrder(parsedOrder);
+      if (!savedOrder) {
+        setOrder(null);
+        return;
       }
+
+      const parsedOrder: unknown = JSON.parse(savedOrder);
+
+      if (!isValidOrder(parsedOrder)) {
+        console.error("Invalid saved order data.");
+        setOrder(null);
+        return;
+      }
+
+      setOrder(parsedOrder);
     } catch (error) {
-      console.error(
-        "Failed to load order:",
-        error
-      );
+      console.error("Failed to load order:", error);
+      setOrder(null);
     } finally {
       setLoaded(true);
     }
@@ -97,36 +98,35 @@ export default function OrderSuccessPage() {
      HELPERS
   ======================================================= */
 
-  const formatPrice = (
-    value: number
-  ) => {
-    return value.toLocaleString(
-      "en-IN"
-    );
+  const formatPrice = (value: number) => {
+    if (!Number.isFinite(value)) {
+      return "0";
+    }
+
+    return value.toLocaleString("en-IN");
   };
 
-  const formatDate = (
-    value: string
-  ) => {
+  const formatDate = (value: string) => {
     try {
-      return new Intl.DateTimeFormat(
-        "en-IN",
-        {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        }
-      ).format(new Date(value));
+      const date = new Date(value);
+
+      if (Number.isNaN(date.getTime())) {
+        return "";
+      }
+
+      return new Intl.DateTimeFormat("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(date);
     } catch {
       return "";
     }
   };
 
-  const getPaymentLabel = (
-    method: Order["paymentMethod"]
-  ) => {
+  const getPaymentLabel = (method: Order["paymentMethod"]) => {
     if (method === "upi") {
       return "UPI";
     }
@@ -226,17 +226,12 @@ export default function OrderSuccessPage() {
               text-[#81756c]
             "
           >
-            We could not find your
-            latest Prasadam order.
+            We could not find your latest Prasadam order.
           </p>
 
           <button
             type="button"
-            onClick={() =>
-              router.push(
-                "/prasadam"
-              )
-            }
+            onClick={() => router.push("/prasadam")}
             className="
               mt-6
               min-h-[48px]
@@ -397,10 +392,8 @@ export default function OrderSuccessPage() {
               sm:leading-6
             "
           >
-            Thank you for your
-            Prasadam order. Your sacred
-            offering request has been
-            received successfully.
+            Thank you for your Prasadam order. Your sacred offering request
+            has been received successfully.
           </p>
 
           {/* ORDER ID */}
@@ -451,9 +444,7 @@ export default function OrderSuccessPage() {
               text-[#9a8d82]
             "
           >
-            {formatDate(
-              order.createdAt
-            )}
+            {formatDate(order.createdAt)}
           </p>
         </section>
 
@@ -492,10 +483,7 @@ export default function OrderSuccessPage() {
               lg:p-6
             "
           >
-            <SectionTitle
-              icon="🛍️"
-              title="Order Items"
-            />
+            <SectionTitle icon="🛍️" title="Order Items" />
 
             <div
               className="
@@ -503,115 +491,108 @@ export default function OrderSuccessPage() {
                 space-y-3
               "
             >
-              {order.items.map(
-                (item) => (
-                  <div
-                    key={item.id}
-                    className="
-                      flex
-                      items-center
-                      gap-3
-                      border-b
-                      border-[#f0e4d3]
-                      pb-3
+              {order.items.map((item) => (
+                <div
+                  key={`${item.id}-${item.weight ?? "500g"}`}
+                  className="
+                    flex
+                    items-center
+                    gap-3
+                    border-b
+                    border-[#f0e4d3]
+                    pb-3
 
-                      last:border-0
-                      last:pb-0
+                    last:border-0
+                    last:pb-0
+                  "
+                >
+                  <div
+                    className="
+                      relative
+                      h-[58px]
+                      w-[58px]
+                      shrink-0
                     "
                   >
-                    <div
+                    <img
+                      src={item.image}
+                      alt={item.name}
                       className="
-                        relative
-                        h-[58px]
-                        w-[58px]
-                        shrink-0
+                        h-full
+                        w-full
+                        rounded-xl
+                        border
+                        border-[#eee1cf]
+                        object-cover
+                      "
+                    />
+
+                    <span
+                      className="
+                        absolute
+                        -right-1.5
+                        -top-1.5
+                        grid
+                        h-5
+                        min-w-5
+                        place-items-center
+                        rounded-full
+                        bg-[#a71919]
+                        px-1
+                        text-[8px]
+                        font-bold
+                        text-white
                       "
                     >
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="
-                          h-full
-                          w-full
-                          rounded-xl
-                          border
-                          border-[#eee1cf]
-                          object-cover
-                        "
-                      />
-
-                      <span
-                        className="
-                          absolute
-                          -right-1.5
-                          -top-1.5
-                          grid
-                          h-5
-                          min-w-5
-                          place-items-center
-                          rounded-full
-                          bg-[#a71919]
-                          px-1
-                          text-[8px]
-                          font-bold
-                          text-white
-                        "
-                      >
-                        {item.quantity}
-                      </span>
-                    </div>
-
-                    <div
-                      className="
-                        min-w-0
-                        flex-1
-                      "
-                    >
-                      <h3
-                        className="
-                          truncate
-                          font-serif
-                          text-sm
-                          font-bold
-                          text-[#4d1616]
-                        "
-                      >
-                        {item.name}
-                      </h3>
-
-                      <p
-                        className="
-                          mt-1
-                          text-[10px]
-                          text-[#81756c]
-                        "
-                      >
-                        ₹
-                        {formatPrice(
-                          item.price
-                        )}{" "}
-                        × {item.quantity}
-                      </p>
-                    </div>
-
-                    <strong
-                      className="
-                        shrink-0
-                        text-xs
-                        text-[#a71919]
-
-                        sm:text-sm
-                      "
-                    >
-                      ₹
-                      {formatPrice(
-                        item.price *
-                          item.quantity
-                      )}
-                    </strong>
+                      {item.quantity}
+                    </span>
                   </div>
-                )
-              )}
+
+                  <div
+                    className="
+                      min-w-0
+                      flex-1
+                    "
+                  >
+                    <h3
+                      className="
+                        truncate
+                        font-serif
+                        text-sm
+                        font-bold
+                        text-[#4d1616]
+                      "
+                    >
+                      {item.name}
+                    </h3>
+
+                    <p
+                      className="
+                        mt-1
+                        text-[10px]
+                        text-[#81756c]
+                      "
+                    >
+                      ₹{formatPrice(item.price)} × {item.quantity}
+                    </p>
+                  </div>
+
+                  <strong
+                    className="
+                      shrink-0
+                      text-xs
+                      text-[#a71919]
+
+                      sm:text-sm
+                    "
+                  >
+                    ₹
+                    {formatPrice(
+                      item.price * item.quantity
+                    )}
+                  </strong>
+                </div>
+              ))}
             </div>
           </section>
 
@@ -633,10 +614,7 @@ export default function OrderSuccessPage() {
               lg:p-6
             "
           >
-            <SectionTitle
-              icon="📍"
-              title="Delivery Details"
-            />
+            <SectionTitle icon="📍" title="Delivery Details" />
 
             <div className="mt-4">
               <h3
@@ -646,10 +624,7 @@ export default function OrderSuccessPage() {
                   text-[#4d1616]
                 "
               >
-                {
-                  order.customer
-                    .fullName
-                }
+                {order.customer.fullName}
               </h3>
 
               <p
@@ -659,15 +634,10 @@ export default function OrderSuccessPage() {
                   text-[#81756c]
                 "
               >
-                +91{" "}
-                {
-                  order.customer
-                    .phone
-                }
+                +91 {order.customer.phone}
               </p>
 
-              {order.customer
-                .email && (
+              {order.customer.email && (
                 <p
                   className="
                     mt-1
@@ -676,10 +646,7 @@ export default function OrderSuccessPage() {
                     text-[#81756c]
                   "
                 >
-                  {
-                    order.customer
-                      .email
-                  }
+                  {order.customer.email}
                 </p>
               )}
 
@@ -698,42 +665,23 @@ export default function OrderSuccessPage() {
                   text-[#655a51]
                 "
               >
-                {
-                  order.customer
-                    .address
-                }
+                {order.customer.address}
 
-                {order.customer
-                  .landmark && (
+                {order.customer.landmark && (
                   <>
                     <br />
-                    Landmark:{" "}
-                    {
-                      order.customer
-                        .landmark
-                    }
+                    Landmark: {order.customer.landmark}
                   </>
                 )}
 
                 <br />
 
-                {
-                  order.customer
-                    .city
-                }
-                ,{" "}
-                {
-                  order.customer
-                    .state
-                }
+                {order.customer.city},{" "}
+                {order.customer.state}
 
                 <br />
 
-                PIN -{" "}
-                {
-                  order.customer
-                    .pincode
-                }
+                PIN - {order.customer.pincode}
               </p>
             </div>
           </section>
@@ -772,10 +720,7 @@ export default function OrderSuccessPage() {
             {/* PAYMENT */}
 
             <div>
-              <SectionTitle
-                icon="₹"
-                title="Payment"
-              />
+              <SectionTitle icon="₹" title="Payment" />
 
               <div
                 className="
@@ -799,9 +744,7 @@ export default function OrderSuccessPage() {
                       text-[#4d1616]
                     "
                   >
-                    {getPaymentLabel(
-                      order.paymentMethod
-                    )}
+                    {getPaymentLabel(order.paymentMethod)}
                   </p>
 
                   <p
@@ -811,8 +754,7 @@ export default function OrderSuccessPage() {
                       text-[#918479]
                     "
                   >
-                    Selected payment
-                    method
+                    Selected payment method
                   </p>
                 </div>
 
@@ -848,16 +790,12 @@ export default function OrderSuccessPage() {
               >
                 <PriceRow
                   label="Subtotal"
-                  value={`₹${formatPrice(
-                    order.subtotal
-                  )}`}
+                  value={`₹${formatPrice(order.subtotal)}`}
                 />
 
                 <PriceRow
                   label="Delivery"
-                  value={`₹${formatPrice(
-                    order.deliveryCharge
-                  )}`}
+                  value={`₹${formatPrice(order.deliveryCharge)}`}
                 />
 
                 <div
@@ -891,10 +829,7 @@ export default function OrderSuccessPage() {
                       text-[#a71919]
                     "
                   >
-                    ₹
-                    {formatPrice(
-                      order.totalAmount
-                    )}
+                    ₹{formatPrice(order.totalAmount)}
                   </strong>
                 </div>
               </div>
@@ -929,8 +864,7 @@ export default function OrderSuccessPage() {
               sm:text-base
             "
           >
-            🙏 May Shri Govardhannath
-            bless you and your family.
+            🙏 May Shri Govardhannath bless you and your family.
           </p>
         </div>
 
@@ -954,11 +888,7 @@ export default function OrderSuccessPage() {
         >
           <button
             type="button"
-            onClick={() =>
-              router.push(
-                "/prasadam"
-              )
-            }
+            onClick={() => router.push("/prasadam")}
             className="
               min-h-[50px]
               rounded-xl
@@ -980,11 +910,7 @@ export default function OrderSuccessPage() {
 
           <button
             type="button"
-            onClick={() =>
-              router.push(
-                "/dashboard"
-              )
-            }
+            onClick={() => router.push("/dashboard")}
             className="
               min-h-[50px]
               rounded-xl
@@ -1006,6 +932,51 @@ export default function OrderSuccessPage() {
       </div>
     </main>
   );
+}
+
+/* =========================================================
+   VALIDATE ORDER
+========================================================= */
+
+function isValidOrder(value: unknown): value is Order {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const order = value as Partial<Order>;
+
+  if (
+    typeof order.id !== "string" ||
+    typeof order.createdAt !== "string"
+  ) {
+    return false;
+  }
+
+  if (!order.customer || typeof order.customer !== "object") {
+    return false;
+  }
+
+  if (!Array.isArray(order.items)) {
+    return false;
+  }
+
+  if (
+    order.paymentMethod !== "upi" &&
+    order.paymentMethod !== "card" &&
+    order.paymentMethod !== "cod"
+  ) {
+    return false;
+  }
+
+  if (
+    typeof order.subtotal !== "number" ||
+    typeof order.deliveryCharge !== "number" ||
+    typeof order.totalAmount !== "number"
+  ) {
+    return false;
+  }
+
+  return true;
 }
 
 /* =========================================================

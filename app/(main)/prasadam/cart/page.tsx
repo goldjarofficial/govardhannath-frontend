@@ -8,18 +8,16 @@ import {
 
 import { useRouter } from "next/navigation";
 
-/* =====================================================
-   TYPES
-===================================================== */
+type Weight =
+  | "250g"
+  | "500g"
+  | "1kg";
 
-type Weight = "250g" | "500g" | "1kg";
-
-type CartItem = {
-  quantity: number;
+type CartItemData = {
+  productId: number;
   weight: Weight;
+  quantity: number;
 };
-
-type Cart = Record<number, CartItem>;
 
 type Product = {
   id: number;
@@ -28,32 +26,11 @@ type Product = {
   image: string;
 };
 
-/* =====================================================
-   WEIGHT OPTIONS
-   Base price = 500g price
-===================================================== */
-
-const weights: {
-  id: Weight;
-  label: string;
-  multiplier: number;
-}[] = [
-  {
-    id: "250g",
-    label: "250 g",
-    multiplier: 0.5,
-  },
-  {
-    id: "500g",
-    label: "500 g",
-    multiplier: 1,
-  },
-  {
-    id: "1kg",
-    label: "1 kg",
-    multiplier: 2,
-  },
-];
+type CartItem = Product & {
+  productId: number;
+  quantity: number;
+  weight: Weight;
+};
 
 /* =====================================================
    PRODUCTS
@@ -87,33 +64,65 @@ const products: Product[] = [
 ];
 
 /* =====================================================
-   PRICE HELPER
+   WEIGHT PRICE
 ===================================================== */
 
-function getPrice(
-  product: Product,
+function getWeightPrice(
+  basePrice: number,
   weight: Weight
 ) {
-  const selectedWeight =
-    weights.find(
-      (item) => item.id === weight
-    );
+  if (weight === "250g") {
+    return basePrice * 0.5;
+  }
 
-  return Math.round(
-    product.price *
-      (selectedWeight?.multiplier ?? 1)
+  if (weight === "1kg") {
+    return basePrice * 2;
+  }
+
+  return basePrice;
+}
+
+/* =====================================================
+   WEIGHT LABEL
+===================================================== */
+
+function getWeightLabel(
+  weight: Weight
+) {
+  if (weight === "250g") {
+    return "250 Gram";
+  }
+
+  if (weight === "1kg") {
+    return "1 Kg";
+  }
+
+  return "500 Gram";
+}
+
+/* =====================================================
+   VALID WEIGHT
+===================================================== */
+
+function isValidWeight(
+  value: unknown
+): value is Weight {
+  return (
+    value === "250g" ||
+    value === "500g" ||
+    value === "1kg"
   );
 }
 
 /* =====================================================
-   CART PAGE
+   PAGE
 ===================================================== */
 
 export default function CartPage() {
   const router = useRouter();
 
   const [cart, setCart] =
-    useState<Cart>({});
+    useState<CartItemData[]>([]);
 
   const [loaded, setLoaded] =
     useState(false);
@@ -130,110 +139,122 @@ export default function CartPage() {
         );
 
       if (!savedCart) {
-        setCart({});
+        setCart([]);
+        setLoaded(true);
         return;
       }
 
       const parsed =
         JSON.parse(savedCart);
 
-      /*
-        New format:
+      /* =================================================
+         NEW FORMAT
 
-        {
-          "1": {
-            quantity: 1,
-            weight: "500g"
-          }
-        }
-      */
+         [
+           {
+             productId: 1,
+             weight: "1kg",
+             quantity: 5
+           },
+           {
+             productId: 1,
+             weight: "250g",
+             quantity: 2
+           }
+         ]
+      ================================================= */
 
-      const convertedCart: Cart = {};
-
-      Object.entries(parsed).forEach(
-        ([id, value]) => {
-          const productId =
-            Number(id);
-
-          /*
-            Support old cart format too:
-
-            {
-              "1": 2
-            }
-
-            Old cart will automatically
-            become 500g.
-          */
-
-          if (
-            typeof value ===
-            "number"
-          ) {
-            if (value > 0) {
-              convertedCart[
-                productId
-              ] = {
-                quantity: value,
-                weight: "500g",
-              };
-            }
-
-            return;
-          }
-
-          /*
-            New cart format
-          */
-
-          if (
-            value &&
-            typeof value ===
-              "object"
-          ) {
-            const item =
-              value as Partial<CartItem>;
-
-            const quantity =
-              Number(
+      if (Array.isArray(parsed)) {
+        const validCart =
+          parsed.filter(
+            (
+              item
+            ): item is CartItemData =>
+              item &&
+              typeof item.productId ===
+                "number" &&
+              Number.isFinite(
+                item.productId
+              ) &&
+              products.some(
+                (product) =>
+                  product.id ===
+                  item.productId
+              ) &&
+              isValidWeight(
+                item.weight
+              ) &&
+              typeof item.quantity ===
+                "number" &&
+              Number.isFinite(
                 item.quantity
+              ) &&
+              item.quantity > 0
+          );
+
+        setCart(validCart);
+      } else {
+        /* =================================================
+           OLD FORMAT SUPPORT
+
+           {
+             "1": 2,
+             "2": 3
+           }
+
+           Old items become 500g.
+        ================================================= */
+
+        if (
+          parsed &&
+          typeof parsed === "object" &&
+          !Array.isArray(parsed)
+        ) {
+          const migratedCart: CartItemData[] =
+            Object.entries(parsed)
+              .map(
+                ([
+                  productId,
+                  quantity,
+                ]) => ({
+                  productId:
+                    Number(productId),
+
+                  weight:
+                    "500g" as Weight,
+
+                  quantity:
+                    Number(quantity),
+                })
+              )
+              .filter(
+                (item) =>
+                  Number.isFinite(
+                    item.productId
+                  ) &&
+                  item.quantity > 0 &&
+                  Number.isFinite(
+                    item.quantity
+                  ) &&
+                  products.some(
+                    (product) =>
+                      product.id ===
+                      item.productId
+                  )
               );
 
-            const weight =
-              item.weight;
-
-            if (
-              quantity > 0 &&
-              (
-                weight ===
-                  "250g" ||
-                weight ===
-                  "500g" ||
-                weight ===
-                  "1kg"
-              )
-            ) {
-              convertedCart[
-                productId
-              ] = {
-                quantity,
-                weight,
-              };
-            }
-          }
+          setCart(migratedCart);
+        } else {
+          setCart([]);
         }
-      );
-
-      setCart(
-        convertedCart
-      );
+      }
     } catch (error) {
       console.error(
         "Failed to load cart:",
         error
       );
 
-      setCart({});
+      setCart([]);
     } finally {
       setLoaded(true);
     }
@@ -246,16 +267,36 @@ export default function CartPage() {
   useEffect(() => {
     if (!loaded) return;
 
-    localStorage.setItem(
-      "prasadam-cart",
-      JSON.stringify(cart)
-    );
+    try {
+      localStorage.setItem(
+        "prasadam-cart",
+        JSON.stringify(cart)
+      );
 
-    window.dispatchEvent(
-      new Event(
-        "prasadam-cart-updated"
-      )
-    );
+      /*
+        Old weight storage is no longer needed.
+        Weight is stored directly inside every cart item.
+      */
+
+      localStorage.removeItem(
+        "prasadam-cart-weights"
+      );
+
+      /*
+        Notify other components that cart changed.
+      */
+
+      window.dispatchEvent(
+        new Event(
+          "prasadam-cart-updated"
+        )
+      );
+    } catch (error) {
+      console.error(
+        "Failed to save cart:",
+        error
+      );
+    }
   }, [cart, loaded]);
 
   /* =====================================================
@@ -263,38 +304,39 @@ export default function CartPage() {
   ===================================================== */
 
   const cartItems =
-    useMemo(() => {
-      return products
-        .filter(
-          (product) =>
-            (
-              cart[
-                product.id
-              ]?.quantity ?? 0
-            ) > 0
-        )
-        .map((product) => {
-          const cartItem =
-            cart[product.id];
-
-          const weight =
-            cartItem?.weight ??
-            "500g";
-
-          const selectedPrice =
-            getPrice(
-              product,
-              weight
+    useMemo<CartItem[]>(() => {
+      return cart
+        .map((cartItem) => {
+          const product =
+            products.find(
+              (product) =>
+                product.id ===
+                cartItem.productId
             );
+
+          if (!product) {
+            return null;
+          }
 
           return {
             ...product,
+
+            productId:
+              cartItem.productId,
+
             quantity:
               cartItem.quantity,
-            weight,
-            selectedPrice,
+
+            weight:
+              cartItem.weight,
           };
-        });
+        })
+        .filter(
+          (
+            item
+          ): item is CartItem =>
+            item !== null
+        );
     }, [cart]);
 
   /* =====================================================
@@ -305,8 +347,7 @@ export default function CartPage() {
     useMemo(() => {
       return cartItems.reduce(
         (total, item) =>
-          total +
-          item.quantity,
+          total + item.quantity,
         0
       );
     }, [cartItems]);
@@ -318,10 +359,19 @@ export default function CartPage() {
   const subtotal =
     useMemo(() => {
       return cartItems.reduce(
-        (total, item) =>
-          total +
-          item.selectedPrice *
-            item.quantity,
+        (total, item) => {
+          const price =
+            getWeightPrice(
+              item.price,
+              item.weight
+            );
+
+          return (
+            total +
+            price *
+              item.quantity
+          );
+        },
         0
       );
     }, [cartItems]);
@@ -333,6 +383,10 @@ export default function CartPage() {
   const deliveryCharge =
     subtotal > 0 ? 50 : 0;
 
+  /* =====================================================
+     TOTAL
+  ===================================================== */
+
   const totalAmount =
     subtotal +
     deliveryCharge;
@@ -342,27 +396,44 @@ export default function CartPage() {
   ===================================================== */
 
   const increase = (
-    id: number
+    productId: number,
+    weight: Weight
   ) => {
     setCart(
       (previousCart) => {
-        const existing =
-          previousCart[id];
+        const existingIndex =
+          previousCart.findIndex(
+            (item) =>
+              item.productId ===
+                productId &&
+              item.weight === weight
+          );
 
-        if (!existing) {
-          return previousCart;
+        if (
+          existingIndex !== -1
+        ) {
+          return previousCart.map(
+            (item, index) =>
+              index ===
+              existingIndex
+                ? {
+                    ...item,
+                    quantity:
+                      item.quantity +
+                      1,
+                  }
+                : item
+          );
         }
 
-        return {
+        return [
           ...previousCart,
-
-          [id]: {
-            ...existing,
-            quantity:
-              existing.quantity +
-              1,
+          {
+            productId,
+            weight,
+            quantity: 1,
           },
-        };
+        ];
       }
     );
   };
@@ -372,40 +443,31 @@ export default function CartPage() {
   ===================================================== */
 
   const decrease = (
-    id: number
+    productId: number,
+    weight: Weight
   ) => {
     setCart(
-      (previousCart) => {
-        const existing =
-          previousCart[id];
+      (previousCart) =>
+        previousCart
+          .map((item) => {
+            if (
+              item.productId ===
+                productId &&
+              item.weight === weight
+            ) {
+              return {
+                ...item,
+                quantity:
+                  item.quantity - 1,
+              };
+            }
 
-        if (!existing) {
-          return previousCart;
-        }
-
-        if (
-          existing.quantity <= 1
-        ) {
-          const updatedCart = {
-            ...previousCart,
-          };
-
-          delete updatedCart[id];
-
-          return updatedCart;
-        }
-
-        return {
-          ...previousCart,
-
-          [id]: {
-            ...existing,
-            quantity:
-              existing.quantity -
-              1,
-          },
-        };
-      }
+            return item;
+          })
+          .filter(
+            (item) =>
+              item.quantity > 0
+          )
     );
   };
 
@@ -414,47 +476,19 @@ export default function CartPage() {
   ===================================================== */
 
   const removeItem = (
-    id: number
-  ) => {
-    setCart(
-      (previousCart) => {
-        const updatedCart = {
-          ...previousCart,
-        };
-
-        delete updatedCart[id];
-
-        return updatedCart;
-      }
-    );
-  };
-
-  /* =====================================================
-     CHANGE WEIGHT
-  ===================================================== */
-
-  const changeWeight = (
-    id: number,
+    productId: number,
     weight: Weight
   ) => {
     setCart(
-      (previousCart) => {
-        const existing =
-          previousCart[id];
-
-        if (!existing) {
-          return previousCart;
-        }
-
-        return {
-          ...previousCart,
-
-          [id]: {
-            ...existing,
-            weight,
-          },
-        };
-      }
+      (previousCart) =>
+        previousCart.filter(
+          (item) =>
+            !(
+              item.productId ===
+                productId &&
+              item.weight === weight
+            )
+        )
     );
   };
 
@@ -468,6 +502,124 @@ export default function CartPage() {
     price.toLocaleString(
       "en-IN"
     );
+
+  /* =====================================================
+     PLACE ORDER
+     
+     IMPORTANT:
+     Use CURRENT React cart state,
+     save it first,
+     then navigate.
+
+     This avoids reading an outdated
+     localStorage value.
+  ===================================================== */
+
+  const handlePlaceOrder = () => {
+    if (
+      !loaded ||
+      cartItems.length === 0
+    ) {
+      console.error(
+        "Cart is empty"
+      );
+      return;
+    }
+
+    try {
+      /*
+        Create clean cart data
+        from the current React state.
+      */
+
+      const checkoutCart =
+        cart
+          .filter(
+            (item) =>
+              products.some(
+                (product) =>
+                  product.id ===
+                  item.productId
+              ) &&
+              isValidWeight(
+                item.weight
+              ) &&
+              typeof item.quantity ===
+                "number" &&
+              Number.isFinite(
+                item.quantity
+              ) &&
+              item.quantity > 0
+          )
+          .map((item) => ({
+            productId:
+              item.productId,
+
+            weight:
+              item.weight,
+
+            quantity:
+              item.quantity,
+          }));
+
+      /*
+        Safety check.
+      */
+
+      if (
+        checkoutCart.length === 0
+      ) {
+        console.error(
+          "Cart has no valid items"
+        );
+        return;
+      }
+
+      /*
+        IMPORTANT:
+        Save latest cart BEFORE
+        navigating to checkout.
+      */
+
+      localStorage.setItem(
+        "prasadam-cart",
+        JSON.stringify(
+          checkoutCart
+        )
+      );
+
+      /*
+        Remove old storage format.
+      */
+
+      localStorage.removeItem(
+        "prasadam-cart-weights"
+      );
+
+      /*
+        Notify cart listeners.
+      */
+
+      window.dispatchEvent(
+        new Event(
+          "prasadam-cart-updated"
+        )
+      );
+
+      /*
+        Now go to checkout.
+      */
+
+      router.push(
+        "/prasadam/checkout"
+      );
+    } catch (error) {
+      console.error(
+        "Failed to proceed to checkout:",
+        error
+      );
+    }
+  };
 
   /* =====================================================
      LOADING
@@ -651,6 +803,7 @@ export default function CartPage() {
           className="
             mb-6
             hidden
+
             lg:block
           "
         >
@@ -759,365 +912,327 @@ export default function CartPage() {
                 (
                   item,
                   index
-                ) => (
-                  <article
-                    key={item.id}
-                    className={`
-                      p-3
-                      sm:p-4
-                      lg:p-5
+                ) => {
+                  const itemPrice =
+                    getWeightPrice(
+                      item.price,
+                      item.weight
+                    );
 
-                      ${
-                        index !==
-                        cartItems.length -
-                          1
-                          ? "border-b border-[#eee1cf]"
-                          : ""
-                      }
-                    `}
-                  >
-                    <div
-                      className="
-                        flex
-                        items-start
-                        gap-3
+                  const itemTotal =
+                    itemPrice *
+                    item.quantity;
 
-                        sm:gap-4
-                      "
+                  return (
+                    <article
+                      key={`${item.productId}-${item.weight}`}
+                      className={`
+                        p-3
+
+                        sm:p-4
+
+                        lg:p-5
+
+                        ${
+                          index !==
+                          cartItems.length -
+                            1
+                            ? "border-b border-[#eee1cf]"
+                            : ""
+                        }
+                      `}
                     >
-                      {/* IMAGE */}
-
                       <div
                         className="
-                          h-[82px]
-                          w-[82px]
-                          shrink-0
-                          overflow-hidden
-                          rounded-xl
-                          border
-                          border-[#eee1cf]
-                          bg-[#f7eddf]
+                          flex
+                          items-start
+                          gap-3
 
-                          sm:h-[100px]
-                          sm:w-[100px]
-
-                          lg:h-[120px]
-                          lg:w-[120px]
+                          sm:gap-4
                         "
                       >
-                        <img
-                          src={
-                            item.image
-                          }
-                          alt={
-                            item.name
-                          }
-                          className="
-                            h-full
-                            w-full
-                            object-cover
-                          "
-                        />
-                      </div>
+                        {/* IMAGE */}
 
-                      {/* INFO */}
-
-                      <div
-                        className="
-                          min-w-0
-                          flex-1
-                        "
-                      >
                         <div
                           className="
-                            flex
-                            items-start
-                            justify-between
-                            gap-2
+                            h-[82px]
+                            w-[82px]
+                            shrink-0
+                            overflow-hidden
+                            rounded-xl
+                            border
+                            border-[#eee1cf]
+                            bg-[#f7eddf]
+
+                            sm:h-[100px]
+                            sm:w-[100px]
+
+                            lg:h-[120px]
+                            lg:w-[120px]
                           "
                         >
-                          <div
-                            className="
-                              min-w-0
-                            "
-                          >
-                            <span
-                              className="
-                                text-[9px]
-                                font-bold
-                                uppercase
-                                tracking-[1px]
-                                text-[#c18b32]
-                              "
-                            >
-                              Prasadam
-                            </span>
-
-                            <h3
-                              className="
-                                mt-1
-                                truncate
-                                font-serif
-                                text-[15px]
-                                font-bold
-                                text-[#4d1616]
-
-                                sm:text-lg
-                              "
-                            >
-                              {
-                                item.name
-                              }
-                            </h3>
-                          </div>
-
-                          {/* REMOVE */}
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              removeItem(
-                                item.id
-                              )
+                          <img
+                            src={
+                              item.image
                             }
-                            aria-label="Remove item"
+                            alt={
+                              item.name
+                            }
                             className="
-                              grid
-                              h-8
-                              w-8
-                              shrink-0
-                              place-items-center
-                              rounded-full
-                              text-[#9a8b7e]
-                              transition
-
-                              hover:bg-[#fff0e8]
-                              hover:text-[#a71919]
+                              h-full
+                              w-full
+                              object-cover
                             "
-                          >
-                            <TrashIcon />
-                          </button>
+                          />
                         </div>
 
-                        {/* WEIGHT */}
+                        {/* INFO */}
 
                         <div
                           className="
-                            mt-2
-                            flex
-                            flex-wrap
-                            gap-2
-                          "
-                        >
-                          {weights.map(
-                            (
-                              weight
-                            ) => {
-                              const price =
-                                getPrice(
-                                  item,
-                                  weight.id
-                                );
-
-                              const active =
-                                item.weight ===
-                                weight.id;
-
-                              return (
-                                <button
-                                  key={
-                                    weight.id
-                                  }
-                                  type="button"
-                                  onClick={() =>
-                                    changeWeight(
-                                      item.id,
-                                      weight.id
-                                    )
-                                  }
-                                  className={`
-                                    rounded-lg
-                                    border
-                                    px-2.5
-                                    py-1.5
-                                    text-[10px]
-                                    font-bold
-                                    transition
-
-                                    ${
-                                      active
-                                        ? "border-[#a71919] bg-[#a71919] text-white"
-                                        : "border-[#e3d3bf] bg-white text-[#6e6259] hover:border-[#c18b32]"
-                                    }
-                                  `}
-                                >
-                                  {
-                                    weight.label
-                                  }
-
-                                  <span
-                                    className={
-                                      active
-                                        ? "ml-1 opacity-90"
-                                        : "ml-1 text-[#a71919]"
-                                    }
-                                  >
-                                    ₹
-                                    {
-                                      price
-                                    }
-                                  </span>
-                                </button>
-                              );
-                            }
-                          )}
-                        </div>
-
-                        {/* SELECTED PRICE */}
-
-                        <p
-                          className="
-                            mt-2
-                            text-[13px]
-                            font-bold
-                            text-[#a71919]
-
-                            sm:text-base
-                          "
-                        >
-                          ₹
-                          {formatPrice(
-                            item.selectedPrice
-                          )}
-                          <span
-                            className="
-                              ml-1
-                              text-[10px]
-                              font-medium
-                              text-[#81756c]
-                            "
-                          >
-                            /{" "}
-                            {
-                              weights.find(
-                                (
-                                  weight
-                                ) =>
-                                  weight.id ===
-                                  item.weight
-                              )?.label
-                            }
-                          </span>
-                        </p>
-
-                        {/* QUANTITY */}
-
-                        <div
-                          className="
-                            mt-3
-                            flex
-                            items-center
-                            justify-between
-                            gap-3
+                            min-w-0
+                            flex-1
                           "
                         >
                           <div
                             className="
                               flex
-                              h-9
-                              items-center
-                              overflow-hidden
-                              rounded-lg
-                              border
-                              border-[#dfcdb4]
-                              bg-white
-
-                              sm:h-10
+                              items-start
+                              justify-between
+                              gap-2
                             "
                           >
+                            <div
+                              className="
+                                min-w-0
+                              "
+                            >
+                              <span
+                                className="
+                                  text-[9px]
+                                  font-bold
+                                  uppercase
+                                  tracking-[1px]
+                                  text-[#c18b32]
+                                "
+                              >
+                                Prasadam
+                              </span>
+
+                              <h3
+                                className="
+                                  mt-1
+                                  truncate
+                                  font-serif
+                                  text-[15px]
+                                  font-bold
+                                  text-[#4d1616]
+
+                                  sm:text-lg
+                                "
+                              >
+                                {
+                                  item.name
+                                }
+                              </h3>
+
+                              {/* WEIGHT */}
+
+                              <span
+                                className="
+                                  mt-1
+                                  inline-flex
+                                  rounded-md
+                                  border
+                                  border-[#eadbc5]
+                                  bg-[#fff8ea]
+                                  px-2
+                                  py-1
+                                  text-[9px]
+                                  font-bold
+                                  text-[#8a641f]
+
+                                  sm:text-[10px]
+                                "
+                              >
+                                {getWeightLabel(
+                                  item.weight
+                                )}
+                              </span>
+                            </div>
+
+                            {/* REMOVE */}
+
                             <button
                               type="button"
                               onClick={() =>
-                                decrease(
-                                  item.id
+                                removeItem(
+                                  item.productId,
+                                  item.weight
                                 )
                               }
+                              aria-label={`Remove ${item.name} ${getWeightLabel(item.weight)}`}
                               className="
                                 grid
-                                h-full
-                                w-9
+                                h-8
+                                w-8
+                                shrink-0
                                 place-items-center
-                                text-lg
-                                font-bold
-                                text-[#a71919]
+                                rounded-full
+                                text-[#9a8b7e]
+                                transition
 
-                                hover:bg-[#fff3df]
+                                hover:bg-[#fff0e8]
+                                hover:text-[#a71919]
                               "
                             >
-                              −
-                            </button>
-
-                            <span
-                              className="
-                                grid
-                                h-full
-                                min-w-[38px]
-                                place-items-center
-                                border-x
-                                border-[#eee1cf]
-                                px-2
-                                text-xs
-                                font-bold
-                              "
-                            >
-                              {
-                                item.quantity
-                              }
-                            </span>
-
-                            <button
-                              type="button"
-                              onClick={() =>
-                                increase(
-                                  item.id
-                                )
-                              }
-                              className="
-                                grid
-                                h-full
-                                w-9
-                                place-items-center
-                                bg-[#e74b18]
-                                text-lg
-                                font-bold
-                                text-white
-
-                                hover:bg-[#d83f11]
-                              "
-                            >
-                              +
+                              <TrashIcon />
                             </button>
                           </div>
 
-                          <strong
+                          {/* PRICE */}
+
+                          <p
                             className="
-                              text-sm
-                              text-[#4d1616]
+                              mt-2
+                              text-[13px]
+                              font-bold
+                              text-[#a71919]
 
                               sm:text-base
                             "
                           >
                             ₹
                             {formatPrice(
-                              item.selectedPrice *
-                                item.quantity
+                              itemPrice
                             )}
-                          </strong>
+
+                            <span
+                              className="
+                                ml-1
+                                text-[9px]
+                                font-medium
+                                text-[#8d8177]
+                              "
+                            >
+                              /
+                              {" "}
+                              {getWeightLabel(
+                                item.weight
+                              )}
+                            </span>
+                          </p>
+
+                          {/* QUANTITY */}
+
+                          <div
+                            className="
+                              mt-3
+                              flex
+                              items-center
+                              justify-between
+                              gap-3
+                            "
+                          >
+                            <div
+                              className="
+                                flex
+                                h-9
+                                items-center
+                                overflow-hidden
+                                rounded-lg
+                                border
+                                border-[#dfcdb4]
+                                bg-white
+
+                                sm:h-10
+                              "
+                            >
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  decrease(
+                                    item.productId,
+                                    item.weight
+                                  )
+                                }
+                                className="
+                                  grid
+                                  h-full
+                                  w-9
+                                  place-items-center
+                                  text-lg
+                                  font-bold
+                                  text-[#a71919]
+
+                                  hover:bg-[#fff3df]
+                                "
+                              >
+                                −
+                              </button>
+
+                              <span
+                                className="
+                                  grid
+                                  h-full
+                                  min-w-[38px]
+                                  place-items-center
+                                  border-x
+                                  border-[#eee1cf]
+                                  px-2
+                                  text-xs
+                                  font-bold
+                                "
+                              >
+                                {
+                                  item.quantity
+                                }
+                              </span>
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  increase(
+                                    item.productId,
+                                    item.weight
+                                  )
+                                }
+                                className="
+                                  grid
+                                  h-full
+                                  w-9
+                                  place-items-center
+                                  bg-[#e74b18]
+                                  text-lg
+                                  font-bold
+                                  text-white
+
+                                  hover:bg-[#d83f11]
+                                "
+                              >
+                                +
+                              </button>
+                            </div>
+
+                            <strong
+                              className="
+                                text-sm
+                                text-[#4d1616]
+
+                                sm:text-base
+                              "
+                            >
+                              ₹
+                              {formatPrice(
+                                itemTotal
+                              )}
+                            </strong>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </article>
-                )
+                    </article>
+                  );
+                }
               )}
             </div>
 
@@ -1159,6 +1274,7 @@ export default function CartPage() {
           <aside
             className="
               hidden
+
               md:block
 
               lg:sticky
@@ -1280,10 +1396,8 @@ export default function CartPage() {
 
               <button
                 type="button"
-                onClick={() =>
-                  router.push(
-                    "/prasadam/checkout"
-                  )
+                onClick={
+                  handlePlaceOrder
                 }
                 className="
                   flex
@@ -1306,7 +1420,10 @@ export default function CartPage() {
                 "
               >
                 Place Order
-                <span>→</span>
+
+                <span>
+                  →
+                </span>
               </button>
 
               <p
@@ -1398,10 +1515,8 @@ export default function CartPage() {
 
           <button
             type="button"
-            onClick={() =>
-              router.push(
-                "/prasadam/checkout"
-              )
+            onClick={
+              handlePlaceOrder
             }
             className="
               flex
@@ -1422,7 +1537,10 @@ export default function CartPage() {
             "
           >
             Place Order
-            <span>→</span>
+
+            <span>
+              →
+            </span>
           </button>
         </div>
       </div>
