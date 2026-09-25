@@ -4,885 +4,910 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useLanguage } from "../../lib/LanguageProvider";
-import { authService } from "../../services/auth.service";
 
 export default function Login() {
   const router = useRouter();
+
   const { t } = useLanguage();
 
   const [mobile, setMobile] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  /* =========================================================
-     MOBILE INPUT
-     ========================================================= */
+  const sendOtp = () => {
+    if (mobile.length === 10) {
+      router.push(
+        `/otp?mobile=${mobile}`
+      );
+    }
+  };
 
   const handleMobileChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const value = e.target.value
-      .replace(/\D/g, "")
-      .slice(0, 10);
-
-    setMobile(value);
-
-    if (error) {
-      setError("");
-    }
-  };
-
-  /* =========================================================
-     LOGIN / SEND OTP API
-     ========================================================= */
-
-  const sendOtp = async () => {
-    const cleanedMobile = mobile.trim();
-
-    if (!/^\d{10}$/.test(cleanedMobile)) {
-      setError("Please enter a valid 10-digit mobile number");
-      return;
-    }
-
-    if (loading) return;
-
-    try {
-      setLoading(true);
-      setError("");
-
-      const response = await authService.loginInitiate({
-        mobileNumber: cleanedMobile,
-      });
-
-      console.log("Login initiate response:", response);
-
-      if (!response.success) {
-        setError(response.message || "Failed to send OTP");
-        return;
-      }
-
-      /* Existing user -> OTP */
-
-      router.push(
-        `/otp?mobile=${encodeURIComponent(cleanedMobile)}`
+    const value =
+      e.target.value.replace(
+        /\D/g,
+        ""
       );
-    } catch (err: any) {
-      console.error("Login error:", err);
 
-      /* User not registered -> Register */
-
-      if (
-        err?.status === 404 ||
-        err?.response?.status === 404
-      ) {
-        router.push(
-          `/register?mobile=${encodeURIComponent(
-            cleanedMobile
-          )}`
-        );
-
-        return;
-      }
-
-      setError(
-        err?.response?.data?.message ??
-          err?.message ??
-          "Something went wrong. Please try again."
-      );
-    } finally {
-      setLoading(false);
+    if (value.length <= 10) {
+      setMobile(value);
     }
   };
 
   return (
-    <main
-      className="
-        relative
-        min-h-[100dvh]
-        w-full
-        overflow-hidden
-        bg-[linear-gradient(180deg,#fffaf0_0%,#fff7e9_100%)]
-        text-[#40372f]
-
-        lg:grid
-        lg:grid-cols-[1fr_1fr]
-      "
-    >
-      {/* =====================================================
-          DESKTOP LEFT SIDE
-          ===================================================== */}
-
-      <section
-        className="
-          relative
-          hidden
-          min-h-screen
-          overflow-hidden
-          bg-[#711111]
-
-          lg:flex
-          lg:flex-col
-          lg:justify-between
-          lg:p-12
-
-          xl:p-16
-        "
-      >
-        {/* BACKGROUND IMAGE */}
+    <main className="screen">
+      <section className="content">
+        {/* ORNAMENT */}
 
         <img
-          src="/images/haveli.jpg"
-          alt="Shri Govardhannath Haveli"
-          className="
-            absolute
-            inset-0
-            h-full
-            w-full
-            object-cover
-          "
+          src="/images/login-ornament.png"
+          alt=""
+          className="ornament"
         />
 
-        {/* DARK OVERLAY */}
+        {/* TITLE */}
 
-        <div
-          className="
-            absolute
-            inset-0
-            bg-[linear-gradient(135deg,rgba(69,8,8,0.94)_0%,rgba(117,17,17,0.80)_50%,rgba(84,42,15,0.72)_100%)]
-          "
-        />
+        <h1>
+          {t("welcomeDevotee")}
+        </h1>
 
-        {/* DECORATION */}
+        {/* SUBTITLE */}
 
-        <div
-          className="
-            pointer-events-none
-            absolute
-            -left-28
-            -top-28
-            h-[380px]
-            w-[380px]
-            rounded-full
-            bg-[#e6b458]/10
-            blur-3xl
-          "
-        />
+        <p className="subtitle">
+          {t("enterMobile")}
+        </p>
 
-        <div
-          className="
-            pointer-events-none
-            absolute
-            -bottom-36
-            -right-20
-            h-[450px]
-            w-[450px]
-            rounded-full
-            bg-[#f1cc85]/10
-            blur-3xl
-          "
-        />
+        {/* MOBILE INPUT */}
 
-        {/* BRAND */}
-
-        <div className="relative z-10 flex items-center gap-3">
-          <div
-            className="
-              grid
-              h-[58px]
-              w-[58px]
-              place-items-center
-              rounded-full
-              border
-              border-[#f4d69c]/50
-              bg-white/10
-              text-[29px]
-              backdrop-blur-md
-            "
-          >
-            🛕
-          </div>
-
-          <div>
-            <p
-              className="
-                m-0
-                text-xs
-                font-semibold
-                text-[#f5d99e]
-              "
-            >
-              🙏 Jai Shree Krishna
-            </p>
-
-            <h2
-              className="
-                mt-1
-                font-serif
-                text-xl
-                font-bold
-                text-white
-              "
-            >
-              Shri Govardhannath
-            </h2>
-          </div>
-        </div>
-
-        {/* DESKTOP CENTER CONTENT */}
-
-        <div
-          className="
-            relative
-            z-10
-            max-w-[570px]
-          "
-        >
-          <span
-            className="
-              inline-flex
-              rounded-full
-              border
-              border-[#f1d293]/30
-              bg-white/10
-              px-4
-              py-2
-              text-[10px]
-              font-semibold
-              tracking-[0.12em]
-              text-[#ffe4aa]
-              backdrop-blur-md
-            "
-          >
-            SHRI GOVARDHANNATH HAVELI
+        <div className="mobileInput">
+          <span className="countryCode">
+            🇮🇳 +91
           </span>
 
-          <h1
-            className="
-              mt-6
-              max-w-[520px]
-              font-serif
-              text-[44px]
-              font-bold
-              leading-[1.12]
-              text-white
-
-              xl:text-[52px]
-            "
-          >
-            Begin your spiritual journey with Govardhannath.
-          </h1>
-
-          <p
-            className="
-              mt-5
-              max-w-[490px]
-              text-[15px]
-              leading-7
-              text-white/75
-            "
-          >
-            Experience Live Darshan, Seva, Prasadam,
-            temple events and devotional services from
-            anywhere.
-          </p>
-
-          <div
-            className="
-              mt-8
-              flex
-              items-center
-              gap-3
-              text-[#f4d69c]
-            "
-          >
-            <span className="h-px w-16 bg-[#f4d69c]/60" />
-
-            <span className="font-serif text-xl">
-              ॐ
-            </span>
-
-            <span className="h-px w-16 bg-[#f4d69c]/60" />
-          </div>
-        </div>
-
-        <p
-          className="
-            relative
-            z-10
-            text-xs
-            text-white/55
-          "
-        >
-          Shri Govardhannath Haveli
-        </p>
-      </section>
-
-      {/* =====================================================
-          LOGIN SIDE
-          ===================================================== */}
-
-      <section
-        className="
-          relative
-          flex
-          min-h-[100dvh]
-          items-center
-          justify-center
-          px-5
-          py-7
-
-          max-[359px]:px-[14px]
-
-          sm:px-6
-
-          lg:min-h-screen
-          lg:px-10
-          lg:py-10
-
-          xl:px-16
-        "
-      >
-        {/* BACKGROUND DECORATION */}
-
-        <div
-          className="
-            pointer-events-none
-            absolute
-            -bottom-12
-            -left-12
-            h-28
-            w-28
-            rounded-full
-            border
-            border-[#d5b66d]
-            opacity-[0.15]
-
-            lg:h-40
-            lg:w-40
-          "
-        />
-
-        <div
-          className="
-            pointer-events-none
-            absolute
-            -right-12
-            -top-12
-            h-28
-            w-28
-            rounded-full
-            border
-            border-[#d5b66d]
-            opacity-[0.15]
-
-            lg:h-40
-            lg:w-40
-          "
-        />
-
-        {/* MAIN LOGIN WRAPPER */}
-
-        <div
-          className="
-            relative
-            z-10
-            w-full
-            max-w-[420px]
-
-            sm:max-w-[450px]
-
-            lg:max-w-[500px]
-          "
-        >
-          {/* ORNAMENT */}
-
-          <img
-            src="/images/login-ornament.png"
-            alt=""
-            className="
-              mx-auto
-              block
-              h-[105px]
-              w-[105px]
-              object-contain
-              opacity-60
-
-              max-[359px]:h-[90px]
-              max-[359px]:w-[90px]
-
-              sm:h-[125px]
-              sm:w-[125px]
-
-              lg:h-[145px]
-              lg:w-[145px]
-            "
-          />
-
-          {/* =================================================
-              MOBILE / TABLET TITLE
-              ================================================= */}
-
-          <div className="mb-6 text-center lg:hidden">
-            <h1
-              className="
-                m-0
-                font-serif
-                text-[27px]
-                font-bold
-                leading-tight
-                text-[#8f1717]
-
-                max-[359px]:text-[24px]
-
-                sm:text-[31px]
-              "
-            >
-              {t("welcomeDevotee")}
-            </h1>
-
-            <p
-              className="
-                mx-auto
-                mb-0
-                mt-2
-                max-w-[330px]
-                text-[12px]
-                leading-5
-                text-[#81766d]
-
-                sm:text-[14px]
-              "
-            >
-              {t("enterMobile")}
-            </p>
-          </div>
-
-          {/* =================================================
-              LOGIN CARD
-              ================================================= */}
-
-          <div
-            className="
-              rounded-[20px]
-              border
-              border-[#eadbc5]
-              bg-[#fffdf9]
-              px-5
-              py-6
-              shadow-[0_10px_35px_rgba(83,48,14,0.08)]
-
-              max-[359px]:px-4
-              max-[359px]:py-5
-
-              sm:px-7
-              sm:py-7
-
-              lg:rounded-[26px]
-              lg:px-10
-              lg:py-10
-              lg:shadow-[0_20px_55px_rgba(83,48,14,0.11)]
-            "
-          >
-            {/* DESKTOP TITLE */}
-
-            <div className="mb-8 hidden lg:block">
-              <p
-                className="
-                  mb-2
-                  text-[11px]
-                  font-bold
-                  uppercase
-                  tracking-[0.12em]
-                  text-[#b47c34]
-                "
-              >
-                Welcome Back
-              </p>
-
-              <h1
-                className="
-                  m-0
-                  font-serif
-                  text-[34px]
-                  font-bold
-                  text-[#711111]
-                "
-              >
-                {t("welcomeDevotee")}
-              </h1>
-
-              <p
-                className="
-                  mb-0
-                  mt-2
-                  text-[14px]
-                  leading-6
-                  text-[#81766d]
-                "
-              >
-                {t("enterMobile")}
-              </p>
-            </div>
-
-            {/* =================================================
-                MOBILE NUMBER
-                ================================================= */}
-
-            <div>
-              <label
-                htmlFor="mobile"
-                className="
-                  mb-2
-                  block
-                  text-[11px]
-                  font-semibold
-                  text-[#554940]
-
-                  sm:text-xs
-                "
-              >
-                {t("mobileNumber")}
-              </label>
-
-              <div
-                className="
-                  flex
-                  h-[54px]
-                  w-full
-                  items-center
-                  overflow-hidden
-                  rounded-[13px]
-                  border
-                  border-[#d3a653]
-                  bg-[#fffdf9]
-                  shadow-[0_4px_14px_rgba(107,61,13,0.05)]
-                  transition-all
-
-                  focus-within:border-[#a71919]
-                  focus-within:ring-[3px]
-                  focus-within:ring-[#a71919]/[0.08]
-
-                  max-[359px]:h-[50px]
-
-                  sm:h-[58px]
-
-                  lg:h-[60px]
-                  lg:rounded-[15px]
-                "
-              >
-                {/* COUNTRY CODE */}
-
-                <span
-                  className="
-                    flex
-                    h-full
-                    shrink-0
-                    items-center
-                    border-r
-                    border-[#eadbc5]
-                    bg-[#fff8ec]
-                    px-3
-                    text-[13px]
-                    font-semibold
-                    text-[#40372f]
-
-                    sm:px-4
-                    sm:text-sm
-                  "
-                >
-                  🇮🇳 +91
-                </span>
-
-                {/* INPUT */}
-
-                <input
-                  id="mobile"
-                  type="tel"
-                  inputMode="numeric"
-                  maxLength={10}
-                  placeholder={t("mobileNumber")}
-                  value={mobile}
-                  onChange={handleMobileChange}
-                  disabled={loading}
-                  aria-label={t("mobileNumber")}
-                  autoComplete="tel"
-                  className="
-                    h-full
-                    min-w-0
-                    flex-1
-                    border-0
-                    bg-transparent
-                    px-3
-                    text-[14px]
-                    text-[#40372f]
-                    outline-none
-
-                    placeholder:text-[#a49a91]
-
-                    disabled:cursor-not-allowed
-                    disabled:opacity-60
-
-                    sm:px-4
-                    sm:text-[15px]
-
-                    lg:text-base
-                  "
-                />
-              </div>
-
-              {/* HELPER */}
-
-              <div
-                className="
-                  mt-2
-                  flex
-                  items-center
-                  justify-between
-                  text-[10px]
-                "
-              >
-                <span className="text-[#95897e]">
-                  OTP will be sent to this number
-                </span>
-
-                <span
-                  className={
-                    mobile.length === 10
-                      ? "font-semibold text-[#4d7d50]"
-                      : "text-[#a99d92]"
-                  }
-                >
-                  {mobile.length}/10
-                </span>
-              </div>
-            </div>
-
-            {/* =================================================
-                ERROR
-                ================================================= */}
-
-            {error && (
-              <div
-                role="alert"
-                className="
-                  mt-3
-                  rounded-[10px]
-                  border
-                  border-red-200
-                  bg-red-50
-                  px-3
-                  py-2.5
-                  text-[11px]
-                  font-medium
-                  leading-5
-                  text-red-700
-                "
-              >
-                {error}
-              </div>
+          <input
+            type="tel"
+            inputMode="numeric"
+            maxLength={10}
+            placeholder={t(
+              "mobileNumber"
             )}
+            value={mobile}
+            onChange={
+              handleMobileChange
+            }
+            aria-label={t(
+              "mobileNumber"
+            )}
+          />
+        </div>
 
-            {/* =================================================
-                SEND OTP
-                ================================================= */}
+        {/* BOTTOM ACTION */}
 
-            <button
-              type="button"
-              disabled={mobile.length !== 10 || loading}
-              onClick={sendOtp}
-              className="
-                mt-6
-                flex
-                h-[50px]
-                w-full
-                items-center
-                justify-center
-                gap-2
-                rounded-[13px]
-                border-0
-                bg-[#a71919]
-                text-[14px]
-                font-bold
-                text-white
-                shadow-[0_6px_15px_rgba(113,17,17,0.13)]
-                transition-all
-                duration-200
-
-                enabled:hover:-translate-y-[1px]
-                enabled:hover:bg-[#831313]
-                enabled:hover:shadow-[0_9px_22px_rgba(113,17,17,0.18)]
-
-                enabled:active:translate-y-0
-                enabled:active:scale-[0.985]
-
-                disabled:cursor-not-allowed
-                disabled:bg-[#d28d88]
-                disabled:shadow-none
-
-                max-[359px]:h-[48px]
-
-                sm:h-[52px]
-
-                lg:h-[54px]
-                lg:text-[15px]
-              "
-            >
-              {loading ? (
-                <>
-                  <span
-                    className="
-                      h-4
-                      w-4
-                      animate-spin
-                      rounded-full
-                      border-2
-                      border-white/40
-                      border-t-white
-                    "
-                  />
-
-                  <span>Sending OTP...</span>
-                </>
-              ) : (
-                <>
-                  <span>{t("sendOtp")}</span>
-
-                  <span className="text-[22px] leading-none">
-                    ›
-                  </span>
-                </>
-              )}
-            </button>
-
-            {/* =================================================
-                REGISTER
-                ================================================= */}
-
-            <div className="my-5 flex items-center gap-3">
-              <span className="h-px flex-1 bg-[#eadfce]" />
-
-              <span
-                className="
-                  shrink-0
-                  text-[10px]
-                  text-[#9a8d82]
-                "
-              >
-                New devotee?
-              </span>
-
-              <span className="h-px flex-1 bg-[#eadfce]" />
-            </div>
-
-            <button
-              type="button"
-              disabled={loading}
-              onClick={() => router.push("/register")}
-              className="
-                flex
-                h-[48px]
-                w-full
-                items-center
-                justify-center
-                gap-2
-                rounded-[13px]
-                border
-                border-[#d3a653]
-                bg-[#fffaf0]
-                text-[13px]
-                font-bold
-                text-[#941616]
-                transition-all
-                duration-200
-
-                enabled:hover:border-[#b98231]
-                enabled:hover:bg-[#fff2dd]
-
-                enabled:active:scale-[0.985]
-
-                disabled:cursor-not-allowed
-                disabled:opacity-60
-
-                sm:h-[50px]
-
-                lg:h-[52px]
-                lg:text-[14px]
-              "
-            >
-              Create New Account
-
-              <span className="text-lg leading-none">
-                ›
-              </span>
-            </button>
-
-            {/* =================================================
-                TERMS
-                ================================================= */}
-
-            <p
-              className="
-                mb-0
-                mt-5
-                text-center
-                text-[9px]
-                leading-[1.7]
-                text-[#776c63]
-
-                sm:text-[10px]
-
-                lg:text-[11px]
-              "
-            >
-              {t("termsText")}
-            </p>
-          </div>
-
-          {/* =================================================
-              BOTTOM ORNAMENT
-              ================================================= */}
-
-          <div
-            className="
-              mt-5
-              flex
-              items-center
-              justify-center
-              gap-2.5
-              text-[#c99435]
-              opacity-60
-            "
+        <div className="bottom">
+          <button
+            type="button"
+            className="primary"
+            disabled={
+              mobile.length !== 10
+            }
+            onClick={sendOtp}
           >
-            <span
-              className="
-                h-px
-                w-12
-                bg-gradient-to-r
-                from-transparent
-                to-[#c99435]
+            {t("sendOtp")}
+            <span>›</span>
+          </button>
 
-                sm:w-16
-              "
-            />
-
-            <span className="font-serif text-sm">
-              ॐ
-            </span>
-
-            <span
-              className="
-                h-px
-                w-12
-                bg-gradient-to-l
-                from-transparent
-                to-[#c99435]
-
-                sm:w-16
-              "
-            />
-          </div>
+          <small className="terms">
+            {t("termsText")}
+          </small>
         </div>
       </section>
+
+      {/* DECORATION */}
+
+      <div className="cornerLeft" />
+      <div className="cornerRight" />
+
+      <style jsx global>{`
+        /* ==========================================
+           PAGE
+        ========================================== */
+
+        .screen {
+          position: relative;
+
+          width: 100%;
+          min-height: 100dvh;
+
+          overflow: hidden;
+
+          display: flex;
+          flex-direction: column;
+
+          background:
+            linear-gradient(
+              180deg,
+              #fffaf0 0%,
+              #fff7e9 100%
+            );
+
+          color: var(--text);
+
+          text-align: center;
+        }
+
+        /* ==========================================
+           CONTENT
+        ========================================== */
+
+        .content {
+          position: relative;
+
+          z-index: 3;
+
+          width:
+            min(
+              calc(100% - 48px),
+              390px
+            );
+
+          min-height: 100dvh;
+
+          margin: 0 auto;
+
+          padding-top: 5vh;
+        }
+
+        /* ==========================================
+           ORNAMENT
+        ========================================== */
+
+        .ornament {
+          width: 125px;
+          height: 125px;
+
+          display: block;
+
+          margin:
+            0 auto -4px;
+
+          object-fit: contain;
+
+          opacity: 0.58;
+        }
+
+        /* ==========================================
+           TITLE
+        ========================================== */
+
+        .content h1 {
+          margin: 0;
+
+          color:
+            var(--maroon);
+
+          font:
+            700 29px/1.15
+            Georgia,
+            "Times New Roman",
+            serif;
+        }
+
+        .subtitle {
+          margin:
+            8px 0 20px;
+
+          color:
+            var(--muted);
+
+          font-size: 14px;
+          line-height: 1.5;
+        }
+
+        /* ==========================================
+           MOBILE INPUT
+        ========================================== */
+
+        .mobileInput {
+          width: 100%;
+          height: 55px;
+
+          display: flex;
+          align-items: center;
+
+          padding:
+            0 15px;
+
+          border:
+            1px solid #d3a653;
+
+          border-radius:
+            14px;
+
+          background:
+            #fffdf9;
+
+          box-shadow:
+            0 4px 14px
+            rgba(
+              107,
+              61,
+              13,
+              0.05
+            );
+
+          transition:
+            border-color 0.18s ease,
+            box-shadow 0.18s ease;
+        }
+
+        .mobileInput:focus-within {
+          border-color:
+            var(--maroon);
+
+          box-shadow:
+            0 0 0 3px
+            rgba(
+              167,
+              25,
+              25,
+              0.08
+            );
+        }
+
+        .countryCode {
+          white-space: nowrap;
+
+          color:
+            var(--text);
+
+          font-size: 14px;
+          font-weight: 600;
+        }
+
+        .mobileInput input {
+          flex: 1;
+
+          min-width: 0;
+          height: 100%;
+
+          padding:
+            0 9px;
+
+          border: 0;
+
+          outline: 0;
+
+          background:
+            transparent;
+
+          color:
+            var(--text);
+
+          font-size: 15px;
+        }
+
+        .mobileInput input::placeholder {
+          color: #a49a91;
+        }
+
+        /* ==========================================
+           BOTTOM ACTION
+        ========================================== */
+
+        .bottom {
+          position: absolute;
+
+          left: 0;
+          right: 0;
+
+          bottom:
+            calc(
+              32px +
+              env(
+                safe-area-inset-bottom
+              )
+            );
+        }
+
+        .primary {
+          width: 100%;
+          height: 52px;
+
+          display:
+            inline-flex;
+
+          align-items: center;
+          justify-content: center;
+
+          gap: 8px;
+
+          border: 0;
+
+          border-radius:
+            13px;
+
+          background:
+            var(--maroon);
+
+          color: #fff;
+
+          font-size: 16px;
+          font-weight: 700;
+
+          box-shadow:
+            0 6px 15px
+            rgba(
+              113,
+              17,
+              17,
+              0.13
+            );
+
+          transition:
+            transform 0.18s ease,
+            background 0.18s ease,
+            box-shadow 0.18s ease;
+        }
+
+        .primary span {
+          font-size: 22px;
+
+          line-height: 1;
+        }
+
+        .primary:disabled {
+          background:
+            #d28d88;
+
+          box-shadow: none;
+        }
+
+        .primary:not(
+          :disabled
+        ):active {
+          transform:
+            scale(0.985);
+        }
+
+        /* ==========================================
+           TERMS
+        ========================================== */
+
+        .terms {
+          display: block;
+
+          margin-top: 14px;
+
+          color: #776c63;
+
+          font-size: 11px;
+          line-height: 1.7;
+        }
+
+        /* ==========================================
+           GOLD CORNERS
+        ========================================== */
+
+        .cornerLeft,
+        .cornerRight {
+          position: absolute;
+
+          bottom: 20px;
+
+          width: 58px;
+          height: 58px;
+
+          border:
+            1px solid #d5b66d;
+
+          border-radius: 50%;
+
+          opacity: 0.2;
+
+          pointer-events: none;
+        }
+
+        .cornerLeft {
+          left: -29px;
+        }
+
+        .cornerRight {
+          right: -29px;
+        }
+
+        /* ==========================================
+           SMALL MOBILE
+        ========================================== */
+
+        @media (
+          max-width: 359px
+        ) {
+          .content {
+            width:
+              calc(
+                100% - 28px
+              );
+
+            padding-top:
+              3vh;
+          }
+
+          .ornament {
+            width: 95px;
+            height: 95px;
+          }
+
+          .content h1 {
+            font-size: 25px;
+          }
+
+          .subtitle {
+            margin:
+              6px 0 16px;
+
+            font-size: 12px;
+          }
+
+          .mobileInput {
+            height: 50px;
+
+            padding:
+              0 12px;
+          }
+
+          .countryCode {
+            font-size: 13px;
+          }
+
+          .mobileInput input {
+            font-size: 14px;
+          }
+
+          .primary {
+            height: 48px;
+
+            font-size: 14px;
+          }
+
+          .terms {
+            font-size: 10px;
+          }
+        }
+
+        /* ==========================================
+           SHORT MOBILE HEIGHT
+        ========================================== */
+
+        @media (
+          max-height: 700px
+        ) and (
+          max-width: 599px
+        ) {
+          .content {
+            padding-top: 2vh;
+          }
+
+          .ornament {
+            width: 92px;
+            height: 92px;
+          }
+
+          .content h1 {
+            font-size: 25px;
+          }
+
+          .subtitle {
+            margin:
+              5px 0 14px;
+          }
+
+          .mobileInput {
+            height: 49px;
+          }
+
+          .bottom {
+            bottom:
+              calc(
+                16px +
+                env(
+                  safe-area-inset-bottom
+                )
+              );
+          }
+
+          .primary {
+            height: 46px;
+          }
+
+          .terms {
+            margin-top: 9px;
+          }
+        }
+
+        /* ==========================================
+           LARGE MOBILE
+        ========================================== */
+
+        @media (
+          min-width: 430px
+        ) and (
+          max-width: 599px
+        ) {
+          .content {
+            width:
+              min(
+                calc(
+                  100% - 48px
+                ),
+                420px
+              );
+
+            padding-top:
+              7vh;
+          }
+
+          .ornament {
+            width: 140px;
+            height: 140px;
+          }
+
+          .content h1 {
+            font-size: 32px;
+          }
+
+          .subtitle {
+            font-size: 15px;
+          }
+
+          .mobileInput {
+            height: 59px;
+          }
+
+          .countryCode {
+            font-size: 15px;
+          }
+
+          .mobileInput input {
+            font-size: 16px;
+          }
+
+          .primary {
+            height: 54px;
+
+            font-size: 16px;
+          }
+        }
+
+        /* ==========================================
+           TABLET
+        ========================================== */
+
+        @media (
+          min-width: 600px
+        ) and (
+          max-width: 1023px
+        ) {
+          .screen {
+            min-height: 100vh;
+
+            display: grid;
+
+            place-items: center;
+
+            padding:
+              50px 24px;
+          }
+
+          .content {
+            width: 480px;
+
+            max-width: 100%;
+
+            min-height: auto;
+
+            margin: 0;
+
+            padding:
+              36px 38px
+              34px;
+
+            border:
+              1px solid
+              var(--border);
+
+            border-radius:
+              24px;
+
+            background:
+              rgba(
+                255,
+                253,
+                248,
+                0.96
+              );
+
+            box-shadow:
+              0 18px 45px
+              rgba(
+                83,
+                48,
+                14,
+                0.1
+              );
+          }
+
+          .ornament {
+            width: 145px;
+            height: 145px;
+          }
+
+          .content h1 {
+            font-size: 34px;
+          }
+
+          .subtitle {
+            margin:
+              10px 0 26px;
+
+            font-size: 15px;
+          }
+
+          .mobileInput {
+            height: 60px;
+          }
+
+          .countryCode {
+            font-size: 15px;
+          }
+
+          .mobileInput input {
+            font-size: 16px;
+          }
+
+          .bottom {
+            position: static;
+
+            margin-top: 32px;
+          }
+
+          .primary {
+            height: 54px;
+
+            font-size: 16px;
+          }
+
+          .terms {
+            font-size: 11px;
+          }
+
+          .cornerLeft,
+          .cornerRight {
+            width: 90px;
+            height: 90px;
+
+            opacity: 0.15;
+          }
+
+          .cornerLeft {
+            left: 25px;
+          }
+
+          .cornerRight {
+            right: 25px;
+          }
+        }
+
+        /* ==========================================
+           DESKTOP WEBSITE
+        ========================================== */
+
+        @media (
+          min-width: 1024px
+        ) {
+          .screen {
+            min-height:
+              100vh;
+
+            display: grid;
+
+            place-items: center;
+
+            padding:
+              70px 40px;
+
+            background:
+              radial-gradient(
+                circle at top left,
+                rgba(
+                  201,
+                  148,
+                  53,
+                  0.12
+                ),
+                transparent 34%
+              ),
+              radial-gradient(
+                circle at bottom right,
+                rgba(
+                  167,
+                  25,
+                  25,
+                  0.08
+                ),
+                transparent 30%
+              ),
+              #fff9ed;
+          }
+
+          .content {
+            width: 520px;
+
+            max-width: 100%;
+
+            min-height: auto;
+
+            margin: 0;
+
+            padding:
+              42px 46px
+              38px;
+
+            border:
+              1px solid
+              var(--border);
+
+            border-radius:
+              28px;
+
+            background:
+              rgba(
+                255,
+                253,
+                248,
+                0.97
+              );
+
+            box-shadow:
+              0 22px 55px
+              rgba(
+                90,
+                52,
+                16,
+                0.12
+              );
+          }
+
+          .ornament {
+            width: 150px;
+            height: 150px;
+
+            margin-bottom:
+              -2px;
+          }
+
+          .content h1 {
+            font-size: 38px;
+          }
+
+          .subtitle {
+            margin:
+              10px 0 30px;
+
+            font-size: 16px;
+          }
+
+          .mobileInput {
+            height: 62px;
+
+            padding:
+              0 18px;
+
+            border-radius:
+              15px;
+          }
+
+          .countryCode {
+            font-size: 15px;
+          }
+
+          .mobileInput input {
+            font-size: 16px;
+          }
+
+          .bottom {
+            position: static;
+
+            margin-top: 34px;
+          }
+
+          .primary {
+            height: 56px;
+
+            border-radius:
+              14px;
+
+            font-size: 16px;
+          }
+
+          .primary:not(
+            :disabled
+          ):hover {
+            background:
+              var(
+                --dark-maroon
+              );
+
+            transform:
+              translateY(-1px);
+
+            box-shadow:
+              0 9px 22px
+              rgba(
+                113,
+                17,
+                17,
+                0.18
+              );
+          }
+
+          .terms {
+            margin-top: 16px;
+
+            font-size: 11px;
+          }
+
+          .cornerLeft,
+          .cornerRight {
+            width: 120px;
+            height: 120px;
+
+            bottom: 35px;
+
+            opacity: 0.12;
+          }
+
+          .cornerLeft {
+            left: 30px;
+          }
+
+          .cornerRight {
+            right: 30px;
+          }
+        }
+
+        /* ==========================================
+           LARGE DESKTOP
+        ========================================== */
+
+        @media (
+          min-width: 1440px
+        ) {
+          .content {
+            width: 560px;
+
+            padding:
+              48px 50px
+              42px;
+          }
+
+          .ornament {
+            width: 165px;
+            height: 165px;
+          }
+
+          .content h1 {
+            font-size: 40px;
+          }
+
+          .mobileInput {
+            height: 64px;
+          }
+
+          .primary {
+            height: 58px;
+          }
+        }
+      `}</style>
     </main>
   );
 }
