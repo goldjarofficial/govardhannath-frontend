@@ -31,6 +31,12 @@ export default function Login() {
 
     if (value.length <= 10) {
       setMobile(value);
+      
+      if (value.length === 10) {
+        router.push(
+          `/otp?mobile=${value}`
+        );
+      }
     }
   };
 

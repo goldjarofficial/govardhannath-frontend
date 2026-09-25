@@ -50,6 +50,10 @@ export default function OtpClient() {
 
     if (value.length <= 6) {
       setOtp(value);
+      
+      if (value.length === 6) {
+        router.push("/dashboard");
+      }
     }
   };
 
